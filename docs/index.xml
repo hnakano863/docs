@@ -2,12 +2,12 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Docs on Analysis Documentations</title>
-    <link>http://example.org/docs/</link>
+    <link>http://hanakno863.github.io/learn-docs/docs/</link>
     <description>Recent content in Docs on Analysis Documentations</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
     
-	<atom:link href="http://example.org/docs/index.xml" rel="self" type="application/rss+xml" />
+	<atom:link href="http://hanakno863.github.io/learn-docs/docs/index.xml" rel="self" type="application/rss+xml" />
     
     
   </channel>
