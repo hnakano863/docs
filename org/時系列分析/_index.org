@@ -1,0 +1,272 @@
+#+TITLE: 時系列分析
+#+hugo_base_dir: ../../
+#+hugo_section: /docs/時系列分析
+#+options: \n:t
+
+* 時系列データとは
+一定の時間間隔でとられたデータのことを時系列データという。
+** 記号法
+時点 $t$ におけるデータを $y_t$ と書く。
+時点 $t$ から $k$ 時点前のデータを $y_{t-k}$ と書く。
+特に、1時点前のデータは $y_{t-1}$ と書く。
+
+$T$ 時点までの一連の時系列データをまとめて $Y_T$ のように書く。
+   
+$$ Y_T = \{y\}^T_{t=1} = \{y_1, y_2, \cdots ,y_T\} $$
+   
+* データ生成過程(DGP : Data Generating Process)
+時間経過に従って変化する確率分布のことをデータ生成過程という。
+データ生成過程のことを単に確率過程ということもある。
+時系列データはデータ生成過程の一つの実現値であると考えられる。
+
+各時点のデータから、そのデータを生み出すもととなったデータ生成過程を推測することを、モデリングという。
+** 平均
+時刻 $t$ におけるデータの平均を $\mu_t = \mathrm{E}[y_t]$ と表す
+** 分散
+時刻 $t$ でにおけるデータの分散を $\mathrm{Var}[y_t] = \mathrm{E}[(y_t - \mu_t)^2]$ と表す。
+* 時系列データの構造
+時系列データは以下の式のような構造をもつ
+
+**時系列データ = 短期の自己相関 + 周期成分 + トレンド + 外因性 + ホワイトノイズ**
+  
+** 自己相関 
+自己相関とは、異なる時点のデータ同士の相関である。
+時系列データは前後のデータと相関をもつことが多い。
+
+例えば、お風呂の温度の変化を考えよう。
+前の時点でのお湯の温度が 42℃なら、次の時点の温度もだいたい 42℃程度と考えられる。
+一方、前の時点の温度が 30℃であったとして、次の時点の温度がいきなり 40℃まで上がることは考えにくい。
+すなわち、この例では、前時点の温度が高いほど次の時点での温度が高くなると考えることができる。
+
+このように前後のデータ間に存在する相関関係のことを自己相関という。
+*** 数式表現
+以上で説明した自己相関を、数式を用いて定義する。
+
+まず、自己共分散を定義する
+**** 自己共分散
+$k$ 時点前のデータとの共分散を $k$ 次の自己共分散といい、以下の式で定義する。
+    
+$$ \gamma_{kt} = \mathrm{Cov}[y_t,y_{t-k}] = \mathrm{E}[(y_t - \mu_t)(y_{t-k}-\mu_{t-k})] $$
+
+**** 自己相関
+自己共分散を標準化したものを自己相関として定義する。
+$k$ 次の自己相関は以下の式で表される。
+    
+$$ \rho_{kt} = \mathrm{Corr}[y_t,y_{t-k}] = \cfrac{\mathrm{Cov}[y_t,y_{t-k}]}{\sqrt{\mathrm{Var}[y_t]\mathrm{Var}[y_{t-k}]}} $$
+
+自己相関は標準化されているので、その絶対値 $|\rho_{kt}|$ は 1 未満になる。
+*** 偏自己相関
+$k$ 次の自己相関から、 $k-1$ 次までの自己相関の影響を除いたものを、偏自己相関という。
+
+偏自己相関の概念について理解を深めるために、ちょっとした計算をしてみよう。
+
+いま、1時点前のデータとの自己相関が 0.8 の時系列データがあるとする。
+すなわち、時点 $t$ におけるデータ $y_t$ は、 1 時点前のデータ $y_{t-1}$ を用いて
+
+$$y_t = 0.8y_{t-1}$$
+
+と表せる。
+
+このとき、1時点前のデータと 2 時点前のデータとの間にも同様の相関関係があるはずなので、
+
+$$ y_{t-1} = 0.8y_{t-2} $$
+
+が成り立つ。
+
+二つの数式から合わせて $y_t{t-1}$ を消去することで、 $y_t$ と $y_{t-2}$ との相関関係が導き出せる。
+
+$$ y_{t} = 0.8 (0.8 y_{t-2}) = 0.64 y_{t-2} $$
+
+このように、2時点前との関係性については何も定義していなかったにも関わらず、1時点前との関係が 2 時点前との関係にまで波及してしまう。
+
+このような波及する相関関係の影響を除いて$y_t$ と $y_{t-k}$ との相関関係を表すのが $k$ 次の偏自己相関である。
+
+$k$ 次の偏自己相関の定義式は以下の通り
+    
+$$ P_{tk} = \cfrac{\mathrm{Cov}[y_t-\hat{y}_t,y_{t-k}-\hat{y}_{t-k}]}{\sqrt{\mathrm{Var}[y_t-\hat{y}_t]\mathrm{Var}[y_{t-k}-\hat{y}_{t-k}]}} $$
+    
+ただし、 $\hat{y}_t$ は $t$ 時点における $y_t$ の推定値。
+
+*** コレログラム 
+何時点前との自己相関が強いか調べるために、横軸にラグを、縦軸に相関係数を取ったグラフをコレログラムという。
+
+Python を使ってコレログラムがどんなものか見てみよう。
+
+まず、疑似データを作成する。
+
+#+begin_src jupyter-python :session py :kernel py-project :async yes :file :exports both
+import statsmodels.api as sm
+from statsmodels.tsa.arima_process import ArmaProcess
+import matplotlib.pyplot as plt
+
+# 疑似データを作成
+# y[t] = 0.8 * y[t-1]のプロセスを作成
+model = ArmaProcess(ar=[1, - 0.8], ma=[1])
+# 200サンプル作成
+samples = model.generate_sample(200)
+
+plt.plot(samples)
+plt.show()
+#+end_src
+
+#+RESULTS:
+[[file:./.ob-jupyter/67c67ea64bbbab1a25f5deb06f20b6b73704e9df.png]]
+
+まずは自己相関のコレログラム
+
+#+begin_src jupyter-python :session py :kernel py-project :async yes :file :exports both
+sm.graphics.tsa.plot_acf(samples)
+plt.show()
+#+end_src
+
+#+RESULTS:
+[[file:./.ob-jupyter/2f4eb6c5bb5ebb1ddd39f6ce6706147984c83bd2.png]]
+
+縦軸が相関係数、横軸がデータ同士のラグの大きさである。
+ラグ 0 で相関係数 1 (自分自身との相関は 1)であり、ラグ 1 のとき相関係数 0.8 であることがわかる。
+しかし、実際には相関していないはずのラグ 2 以上のデータとも相関関係が見える。
+
+それでは、本当に相関関係があるかどうか、偏自己相関のコレログラムを見てみよう。
+
+#+begin_src jupyter-python :session py :kernel py-project :async yes :file :exports both
+sm.graphics.tsa.plot_pacf(samples)
+plt.show()
+#+end_src
+
+#+RESULTS:
+[[file:./.ob-jupyter/a7c237e25a737a21da7d915887c4ace1ec83eae4.png]]
+
+偏自己相関のコレログラムを見れば、真実のところラグ 2 以上では相関関係がないということがわかる。
+** 周期成分
+** ホワイトノイズ
+未来を予測するための情報を含まない純粋な雑音のことをホワイトノイズという。
+ホワイトノイズは $\varepsilon_t$ という記号で表されることが多い。
+
+より厳密にホワイトノイズのみたす性質を述べると、以下の 3 つである。
+ 1. 期待値が 0
+ 2. 分散が時間に寄らず一定
+ 3. ラグが 1 以上の自己相関が 0
+
+ホワイトノイズの確率分布として、平均 0, 分散 $\sigma^2$ の正規分布がしばしば仮定される。
+
+また、 $\varepsilon_t$ がホワイトノイズに従うことを明示するために、
+
+$$ \varepsilon_t \sim \mathrm{W.N.}(\sigma^2) $$
+
+と書くことがある。
+
+ホワイトノイズが実際どのような見た目をしているのかというと、
+
+#+begin_src jupyter-python :session py :kernel py-project :async yes :file :exports both
+import numpy as np
+
+# 分散4のホワイトノイズを200サンプル作成
+white_noise = np.random.normal(0, 4, size=200)
+plt.plot(white_noise)
+plt.show()
+#+end_src
+
+#+RESULTS:
+[[file:./.ob-jupyter/6c846e2a3eabc48b17a4b6843c7be712573cb783.png]]
+
+実際、このホワイトノイズの自己相関を確認しておこう。
+#+begin_src jupyter-python :session py :kernel py-project :async yes :file :exports both
+sm.graphics.tsa.plot_acf(white_noise)
+#+end_src
+
+#+RESULTS:
+:RESULTS:
+[[file:./.ob-jupyter/a3494687e73519802ee0355a6bb18081b4b02eed.png]]
+[[file:./.ob-jupyter/a3494687e73519802ee0355a6bb18081b4b02eed.png]]
+:END:
+
+** トレンド
+時系列データの値が全体的に上昇したり下降したりするとき、トレンドをもつということがある。
+しかし、トレンドとはなんだろう。数式で表せばどうなるのか。
+
+以下では、それを見る。
+*** iid 系列 
+互いに相関がないことを独立という。
+データが互いに独立で、しかも同じ確率分布から生成されている場合、これらを独立同分布(i.i.d.)なデータという。
+そして、i.i.d.なデータからなる時系列データを iid 系列という。
+
+平均 $\mu$ 分散 $\sigma^2$ の iid 系列を
+
+$$ y_t \sim \mathrm{iid}(\mu,\sigma) $$
+
+と表すことがある。
+*** ランダムウォーク
+iid 系列の累積和からなる系列をランダムウォークという。
+数式で表すと、
+
+$$ y_t = y_{t-1} + \epsilon_t, \,\,\,\,\, \epsilon_t \sim \mathrm{iid}(0, \sigma^2) $$
+
+例えば、ホワイトノイズの累積和はランダムウォークの一つである。
+ランダムウォークはこんな見た目をしている。
+#+begin_src jupyter-python :session py :kernel py-project :async yes :file :exports both
+plt.plot(white_noise.cumsum())
+plt.show()
+#+end_src
+
+#+RESULTS:
+[[file:./.ob-jupyter/fbb7de862e62c99dcd44fb734ca26f4e251d8db4.png]]
+
+ランダムウォークの見た目は、データの生成のたびに大きくかわる。
+#+begin_src jupyter-python :session py :kernel py-project :async yes :file :exports both
+fig, ax = plt.subplots(nrows=2, ncols=2, figsize=(8, 5.5), sharex=True, sharey=True)
+
+for i in range(2):
+    for j in range(2):
+        wht_nz = np.random.normal(0, 4, size=100)
+        ax[i,j].plot(wht_nz.cumsum())
+
+plt.show()
+#+end_src
+
+#+RESULTS:
+[[file:./.ob-jupyter/c6fba877eaf4b8899cdfc953c6271b7ee55e0842.png]]
+
+*** ドリフト率
+例えば、1時点進むごとに 2 ずつ増える時系列データを考えよう。
+そのようなデータは数式で
+
+$$ y_t = y_{t-1} + 2 $$
+
+と表せる。
+一般的に、
+
+$$ y_t = y_{t-1} + \delta $$
+
+は時点ごとに $\delta$ ずつ増えていく。
+こういう時系列データを線形トレンドという。
+    
+これにさらにホワイトノイズ $\varepsilon_t$ をのせたものを「ドリフト率 $\delta$ の確率的トレンド」という
+    
+$$ y_t = y_{t-1} + \delta + \varepsilon_t$$
+
+Julia を使って確率的トレンドをグラフにしてみよう。
+#+begin_src jupyter-julia :session jl :kernel julia-1.4 :async yes :file :exports both
+using Plots
+using Distributions
+gr()
+
+ndist = Normal(0, 4) # ホワイトノイズの確率分布
+delt = 2  # ドリフト率
+
+# 配列を初期化
+trends = zeros(200)
+# 初期値をセット
+trends[1] = 0
+# データ作成
+for i in 1:(length(trends)-1)
+    trends[i+1] = trends[i] + delt + rand(ndist)
+end
+
+plot(trends)
+#+end_src
+
+#+RESULTS:
+[[file:./.ob-jupyter/e791ed42295bf60c1446336e63599536deec26c4.svg]]
+
+** 外因性
+外部要因による影響のこと。
