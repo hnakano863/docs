@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="en" dir=>
+
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="時系列データとは 一定の時間間隔でとられたデータのことを時系列データという。
+記号法 時点 \(t\) におけるデータを \(y_t\) と書く。時点 \(t\) から \(k\) 時点前のデータを \(y_{t-k}\) と書く。特に、1時点前のデータは \(y_{t-1}\) と書く。
+\(T\) 時点までの一連の時系列データをまとめて \(Y_T\) のように書く。
+\[ Y_T = \{y\}^T_{t=1} = \{y_1, y_2, \cdots ,y_T\} \]
+データ生成過程(DGP : Data Generating Process) 時間経過に従って変化する確率分布のことをデータ生成過程という。データ生成過程のことを単に確率過程ということもある。時系列データはデータ生成過程の一つの実現値であると考えられる。
+各時点のデータから、そのデータを生み出すもととなったデータ生成過程を推測することを、モデリングという。
+平均 時刻 \(t\) におけるデータの平均を \(\mu_t = \mathrm{E}[y_t]\) と表す
+分散 時刻 \(t\) でにおけるデータの分散を \(\mathrm{Var}[y_t] = \mathrm{E}[(y_t - \mu_t)^2]\) と表す。
+時系列データの構造 時系列データは以下の式のような構造をもつ
+時系列データ = 短期の自己相関 &#43; 周期成分 &#43; トレンド &#43; 外因性 &#43; ホワイトノイズ
+自己相関 自己相関とは、異なる時点のデータ同士の相関である。時系列データは前後のデータと相関をもつことが多い。">
+<meta name="theme-color" content="#FFFFFF"><meta property="og:title" content="時系列分析" />
+<meta property="og:description" content="" />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="http://example.org/docs/%E6%99%82%E7%B3%BB%E5%88%97%E5%88%86%E6%9E%90/" />
+
+<title>時系列分析 | Analysis Documentations</title>
+<link rel="manifest" href="/manifest.json">
+<link rel="icon" href="/favicon.png" type="image/x-icon">
+<link rel="stylesheet" href="/book.min.e161f1fe2b283b6a43c29a52fde96e2387fade573e78efa6701d44c8499da76b.css" integrity="sha256-4WHx/isoO2pDwppS/eluI4f63lc&#43;eO&#43;mcB1EyEmdp2s=">
+<script defer src="/en.search.min.d0e52ef2eb4bee9a3b63b37c3a3d53eca17304cd6fb3c8b770fd43a7c50616de.js" integrity="sha256-0OUu8utL7po7Y7N8Oj1T7KFzBM1vs8i3cP1Dp8UGFt4="></script>
+<link rel="alternate" type="application/rss+xml" href="http://example.org/docs/%E6%99%82%E7%B3%BB%E5%88%97%E5%88%86%E6%9E%90/index.xml" title="Analysis Documentations" />
+<!--
+Made with Book Theme
+https://github.com/alex-shpak/hugo-book
+-->
+
+  <script type="text/javascript" async
+  src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+  MathJax.Hub.Config({
+  tex2jax: {
+    inlineMath: [['$','$'], ['\\(','\\)']],
+    displayMath: [['$$','$$'], ['\\[', '\\]']],
+    processEscapes: true,
+    processEnvironments: true,
+    skipTags: ['script', 'noscript', 'style', 'textarea', 'pre'],
+    TeX: { equationNumbers: { autoNumber: "AMS" },
+         extensions: ["AMSmath.js", "AMSsymbols.js"] }
+  }
+  });
+  MathJax.Hub.Queue(function() {
+    
+    
+    
+    var all = MathJax.Hub.getAllJax(), i;
+    for(i = 0; i < all.length; i += 1) {
+        all[i].SourceElement().parentNode.className += ' has-jax';
+    }
+  });
+
+  MathJax.Hub.Config({
+  
+  TeX: { equationNumbers: { autoNumber: "AMS" } }
+  });
+</script>
+
+<link rel="stylesheet" href="http://example.org/css/syntax.css" />
+
+</head>
+
+<body dir=>
+  <input type="checkbox" class="hidden" id="menu-control" />
+  <main class="container flex">
+    <aside class="book-menu">
+      
+  <nav>
+<h2 class="book-brand">
+  <a href="/"><span>Analysis Documentations</span>
+  </a>
+</h2>
+
+
+<div class="book-search">
+  <input type="text" id="book-search-input" placeholder="Search" aria-label="Search" maxlength="64" data-hotkeys="s/" />
+  <div class="book-search-spinner hidden"></div>
+  <ul id="book-search-results"></ul>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  
+  
+  
+
+  
+  <ul>
+    
+      
+        <li>
+          
+  
+    <a href="/docs/%E6%99%82%E7%B3%BB%E5%88%97%E5%88%86%E6%9E%90/" class="active">時系列分析</a>
+  
+
+          
+  
+  
+  
+
+  
+  <ul>
+    
+  </ul>
+  
+
+        </li>
+      
+    
+  </ul>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</nav>
+
+
+
+
+  <script>(function(){var menu=document.querySelector("aside.book-menu nav");addEventListener("beforeunload",function(event){localStorage.setItem("menu.scrollTop",menu.scrollTop);});menu.scrollTop=localStorage.getItem("menu.scrollTop");})();</script>
+
+
+ 
+    </aside>
+
+    <div class="book-page">
+      <header class="book-header">
+        
+  <div class="flex align-center justify-between">
+  <label for="menu-control">
+    <img src="/svg/menu.svg" class="book-icon" alt="Menu" />
+  </label>
+
+  <strong>時系列分析</strong>
+
+  <label for="toc-control">
+    
+    <img src="/svg/toc.svg" class="book-icon" alt="Table of Contents" />
+    
+  </label>
+</div>
+
+
+  
+    <input type="checkbox" class="hidden" id="toc-control" />
+    <aside class="hidden clearfix">
+      
+  <nav id="TableOfContents">
+  <ul>
+    <li><a href="#時系列データとは">時系列データとは</a>
+      <ul>
+        <li><a href="#記号法">記号法</a></li>
+      </ul>
+    </li>
+    <li><a href="#データ生成過程--dgp-data-generating-process">データ生成過程(DGP : Data Generating Process)</a>
+      <ul>
+        <li><a href="#平均">平均</a></li>
+        <li><a href="#分散">分散</a></li>
+      </ul>
+    </li>
+    <li><a href="#時系列データの構造">時系列データの構造</a>
+      <ul>
+        <li><a href="#自己相関">自己相関</a></li>
+        <li><a href="#周期成分">周期成分</a></li>
+        <li><a href="#ホワイトノイズ">ホワイトノイズ</a></li>
+        <li><a href="#トレンド">トレンド</a></li>
+        <li><a href="#外因性">外因性</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+
+
+    </aside>
+  
+ 
+      </header>
+
+      
+      
+  <article class="markdown"><h2 id="時系列データとは">時系列データとは</h2>
+<p>一定の時間間隔でとられたデータのことを時系列データという。</p>
+<h3 id="記号法">記号法</h3>
+<p>時点 \(t\) におけるデータを \(y_t\) と書く。時点 \(t\) から \(k\) 時点前のデータを \(y_{t-k}\) と書く。特に、1時点前のデータは \(y_{t-1}\) と書く。</p>
+<p>\(T\) 時点までの一連の時系列データをまとめて \(Y_T\) のように書く。</p>
+<p>\[ Y_T = \{y\}^T_{t=1} = \{y_1, y_2, \cdots ,y_T\} \]</p>
+<h2 id="データ生成過程--dgp-data-generating-process">データ生成過程(DGP : Data Generating Process)</h2>
+<p>時間経過に従って変化する確率分布のことをデータ生成過程という。データ生成過程のことを単に確率過程ということもある。時系列データはデータ生成過程の一つの実現値であると考えられる。</p>
+<p>各時点のデータから、そのデータを生み出すもととなったデータ生成過程を推測することを、モデリングという。</p>
+<h3 id="平均">平均</h3>
+<p>時刻 \(t\) におけるデータの平均を \(\mu_t = \mathrm{E}[y_t]\) と表す</p>
+<h3 id="分散">分散</h3>
+<p>時刻 \(t\) でにおけるデータの分散を \(\mathrm{Var}[y_t] = \mathrm{E}[(y_t - \mu_t)^2]\) と表す。</p>
+<h2 id="時系列データの構造">時系列データの構造</h2>
+<p>時系列データは以下の式のような構造をもつ</p>
+<p><strong><strong>時系列データ = 短期の自己相関 + 周期成分 + トレンド + 外因性 + ホワイトノイズ</strong></strong></p>
+<h3 id="自己相関">自己相関</h3>
+<p>自己相関とは、異なる時点のデータ同士の相関である。時系列データは前後のデータと相関をもつことが多い。</p>
+<p>例えば、お風呂の温度の変化を考えよう。前の時点でのお湯の温度が 42℃なら、次の時点の温度もだいたい 42℃程度と考えられる。一方、前の時点の温度が 30℃であったとして、次の時点の温度がいきなり 40℃まで上がることは考えにくい。すなわち、この例では、前時点の温度が高いほど次の時点での温度が高くなると考えることができる。</p>
+<p>このように前後のデータ間に存在する相関関係のことを自己相関という。</p>
+<h4 id="数式表現">数式表現</h4>
+<p>以上で説明した自己相関を、数式を用いて定義する。</p>
+<p>まず、自己共分散を定義する</p>
+<!-- raw HTML omitted -->
+<ul>
+<li>
+<p>自己共分散</p>
+<p>\(k\) 時点前のデータとの共分散を \(k\) 次の自己共分散といい、以下の式で定義する。</p>
+<p>\[ \gamma_{kt} = \mathrm{Cov}[y_t,y_{t-k}] = \mathrm{E}[(y_t - \mu_t)(y_{t-k}-\mu_{t-k})] \]</p>
+</li>
+</ul>
+<!-- raw HTML omitted -->
+<ul>
+<li>
+<p>自己相関</p>
+<p>自己共分散を標準化したものを自己相関として定義する。<br>
+\(k\) 次の自己相関は以下の式で表される。</p>
+<p>\[ \rho_{kt} = \mathrm{Corr}[y_t,y_{t-k}] = \cfrac{\mathrm{Cov}[y_t,y_{t-k}]}{\sqrt{\mathrm{Var}[y_t]\mathrm{Var}[y_{t-k}]}} \]</p>
+<p>自己相関は標準化されているので、その絶対値 \(|\rho_{kt}|\) は 1 未満になる。</p>
+</li>
+</ul>
+<h4 id="偏自己相関">偏自己相関</h4>
+<p>\(k\) 次の自己相関から、 \(k-1\) 次までの自己相関の影響を除いたものを、偏自己相関という。</p>
+<p>偏自己相関の概念について理解を深めるために、ちょっとした計算をしてみよう。</p>
+<p>いま、1時点前のデータとの自己相関が 0.8 の時系列データがあるとする。すなわち、時点 \(t\) におけるデータ \(y_t\) は、 1 時点前のデータ \(y_{t-1}\) を用いて</p>
+<p>\[y_t = 0.8y_{t-1}\]</p>
+<p>と表せる。</p>
+<p>このとき、1時点前のデータと 2 時点前のデータとの間にも同様の相関関係があるはずなので、</p>
+<p>\[ y_{t-1} = 0.8y_{t-2} \]</p>
+<p>が成り立つ。</p>
+<p>二つの数式から合わせて \(y_t{t-1}\) を消去することで、 \(y_t\) と \(y_{t-2}\) との相関関係が導き出せる。</p>
+<p>\[ y_{t} = 0.8 (0.8 y_{t-2}) = 0.64 y_{t-2} \]</p>
+<p>このように、2時点前との関係性については何も定義していなかったにも関わらず、1時点前との関係が 2 時点前との関係にまで波及してしまう。</p>
+<p>このような波及する相関関係の影響を除いて\(y_t\) と \(y_{t-k}\) との相関関係を表すのが \(k\) 次の偏自己相関である。</p>
+<p>\(k\) 次の偏自己相関の定義式は以下の通り</p>
+<p>\[ P_{tk} = \cfrac{\mathrm{Cov}[y_t-\hat{y}_t,y_{t-k}-\hat{y}_{t-k}]}{\sqrt{\mathrm{Var}[y_t-\hat{y}_t]\mathrm{Var}[y_{t-k}-\hat{y}_{t-k}]}} \]</p>
+<p>ただし、 \(\hat{y}_t\) は \(t\) 時点における \(y_t\) の推定値。</p>
+<h4 id="コレログラム">コレログラム</h4>
+<p>何時点前との自己相関が強いか調べるために、横軸にラグを、縦軸に相関係数を取ったグラフをコレログラムという。</p>
+<p>Python を使ってコレログラムがどんなものか見てみよう。</p>
+<p>まず、疑似データを作成する。</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="color:#f92672">import</span> statsmodels.api <span style="color:#f92672">as</span> sm
+<span style="color:#f92672">from</span> statsmodels.tsa.arima_process <span style="color:#f92672">import</span> ArmaProcess
+<span style="color:#f92672">import</span> matplotlib.pyplot <span style="color:#f92672">as</span> plt
+
+<span style="color:#75715e"># 疑似データを作成</span>
+<span style="color:#75715e"># y[t] = 0.8 * y[t-1]のプロセスを作成</span>
+model <span style="color:#f92672">=</span> ArmaProcess(ar<span style="color:#f92672">=</span>[<span style="color:#ae81ff">1</span>, <span style="color:#f92672">-</span> <span style="color:#ae81ff">0.8</span>], ma<span style="color:#f92672">=</span>[<span style="color:#ae81ff">1</span>])
+<span style="color:#75715e"># 200 サンプル作成</span>
+samples <span style="color:#f92672">=</span> model<span style="color:#f92672">.</span>generate_sample(<span style="color:#ae81ff">200</span>)
+
+plt<span style="color:#f92672">.</span>plot(samples)
+plt<span style="color:#f92672">.</span>show()
+</code></pre></div><figure>
+    <img src="/ox-hugo/2d77a7b50a6c20cd4a8a07c607ccb557597e2bb6.png"/> 
+</figure>
+
+<p>まずは自己相関のコレログラム</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python">sm<span style="color:#f92672">.</span>graphics<span style="color:#f92672">.</span>tsa<span style="color:#f92672">.</span>plot_acf(samples)
+plt<span style="color:#f92672">.</span>show()
+</code></pre></div><figure>
+    <img src="/ox-hugo/13713d4e68a40a365b103e1f7542567f7835d624.png"/> 
+</figure>
+
+<p>縦軸が相関係数、横軸がデータ同士のラグの大きさである。ラグ 0 で相関係数 1 (自分自身との相関は 1)であり、ラグ 1 のとき相関係数 0.8 であることがわかる。しかし、実際には相関していないはずのラグ 2 以上のデータとも相関関係が見える。</p>
+<p>それでは、本当に相関関係があるかどうか、偏自己相関のコレログラムを見てみよう。</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python">sm<span style="color:#f92672">.</span>graphics<span style="color:#f92672">.</span>tsa<span style="color:#f92672">.</span>plot_pacf(samples)
+plt<span style="color:#f92672">.</span>show()
+</code></pre></div><figure>
+    <img src="/ox-hugo/64e43e6030c1cbb40f5adeaa0f66b2bc6a8e2b6a.png"/> 
+</figure>
+
+<p>偏自己相関のコレログラムを見れば、真実のところラグ 2 以上では相関関係がないということがわかる。</p>
+<h3 id="周期成分">周期成分</h3>
+<h3 id="ホワイトノイズ">ホワイトノイズ</h3>
+<p>未来を予測するための情報を含まない純粋な雑音のことをホワイトノイズという。ホワイトノイズは \(\varepsilon_t\) という記号で表されることが多い。</p>
+<p>より厳密にホワイトノイズのみたす性質を述べると、以下の 3 つである。</p>
+<ol>
+<li>期待値が 0</li>
+<li>分散が時間に寄らず一定</li>
+<li>ラグが 1 以上の自己相関が 0</li>
+</ol>
+<p>ホワイトノイズの確率分布として、平均 0, 分散 \(\sigma^2\) の正規分布がしばしば仮定される。</p>
+<p>また、 \(\varepsilon_t\) がホワイトノイズに従うことを明示するために、</p>
+<p>\[ \varepsilon_t \sim \mathrm{W.N.}(\sigma^2) \]</p>
+<p>と書くことがある。</p>
+<p>ホワイトノイズが実際どのような見た目をしているのかというと、</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="color:#f92672">import</span> numpy <span style="color:#f92672">as</span> np
+
+<span style="color:#75715e"># 分散 4 のホワイトノイズを 200 サンプル作成</span>
+white_noise <span style="color:#f92672">=</span> np<span style="color:#f92672">.</span>random<span style="color:#f92672">.</span>normal(<span style="color:#ae81ff">0</span>, <span style="color:#ae81ff">4</span>, size<span style="color:#f92672">=</span><span style="color:#ae81ff">200</span>)
+plt<span style="color:#f92672">.</span>plot(white_noise)
+plt<span style="color:#f92672">.</span>show()
+</code></pre></div><figure>
+    <img src="/ox-hugo/a478482ae6c517063f58ba1d9d2d34369054d9f9.png"/> 
+</figure>
+
+<p>実際、このホワイトノイズの自己相関を確認しておこう。</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python">sm<span style="color:#f92672">.</span>graphics<span style="color:#f92672">.</span>tsa<span style="color:#f92672">.</span>plot_acf(white_noise)
+</code></pre></div><p><img src="/ox-hugo/20e218a41a96f9c19f06fc172e5d1ee84ea8b515.png" alt="" /></p>
+<h3 id="トレンド">トレンド</h3>
+<p>時系列データの値が全体的に上昇したり下降したりするとき、トレンドをもつということがある。しかし、トレンドとはなんだろう。数式で表せばどうなるのか。</p>
+<p>以下では、それを見る。</p>
+<h4 id="iid-系列">iid 系列</h4>
+<p>互いに相関がないことを独立という。データが互いに独立で、しかも同じ確率分布から生成されている場合、これらを独立同分布(i.i.d.)なデータという。そして、i.i.d.なデータからなる時系列データを iid 系列という。</p>
+<p>平均 \(\mu\) 分散 \(\sigma^2\) の iid 系列を</p>
+<p>\[ y_t \sim \mathrm{iid}(\mu,\sigma) \]</p>
+<p>と表すことがある。</p>
+<h4 id="ランダムウォーク">ランダムウォーク</h4>
+<p>iid 系列の累積和からなる系列をランダムウォークという。数式で表すと、</p>
+<p>\[ y_t = y_{t-1} + \epsilon_t, ,,,,, \epsilon_t \sim \mathrm{iid}(0, \sigma^2) \]</p>
+<p>例えば、ホワイトノイズの累積和はランダムウォークの一つである。ランダムウォークはこんな見た目をしている。</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python">plt<span style="color:#f92672">.</span>plot(white_noise<span style="color:#f92672">.</span>cumsum())
+plt<span style="color:#f92672">.</span>show()
+</code></pre></div><figure>
+    <img src="/ox-hugo/36a5f1f6f05dd5884364567dcc60b296b4c64b58.png"/> 
+</figure>
+
+<p>ランダムウォークの見た目は、データの生成のたびに大きくかわる。</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python">fig, ax <span style="color:#f92672">=</span> plt<span style="color:#f92672">.</span>subplots(nrows<span style="color:#f92672">=</span><span style="color:#ae81ff">2</span>, ncols<span style="color:#f92672">=</span><span style="color:#ae81ff">2</span>, figsize<span style="color:#f92672">=</span>(<span style="color:#ae81ff">8</span>, <span style="color:#ae81ff">5.5</span>), sharex<span style="color:#f92672">=</span>True, sharey<span style="color:#f92672">=</span>True)
+
+<span style="color:#66d9ef">for</span> i <span style="color:#f92672">in</span> range(<span style="color:#ae81ff">2</span>):
+    <span style="color:#66d9ef">for</span> j <span style="color:#f92672">in</span> range(<span style="color:#ae81ff">2</span>):
+        wht_nz <span style="color:#f92672">=</span> np<span style="color:#f92672">.</span>random<span style="color:#f92672">.</span>normal(<span style="color:#ae81ff">0</span>, <span style="color:#ae81ff">4</span>, size<span style="color:#f92672">=</span><span style="color:#ae81ff">100</span>)
+        ax[i,j]<span style="color:#f92672">.</span>plot(wht_nz<span style="color:#f92672">.</span>cumsum())
+
+plt<span style="color:#f92672">.</span>show()
+</code></pre></div><figure>
+    <img src="/ox-hugo/005ef632b11226af7c50d9979560ec6916eb6daa.png"/> 
+</figure>
+
+<h4 id="ドリフト率">ドリフト率</h4>
+<p>例えば、1時点進むごとに 2 ずつ増える時系列データを考えよう。そのようなデータは数式で</p>
+<p>\[ y_t = y_{t-1} + 2 \]</p>
+<p>と表せる。一般的に、</p>
+<p>\[ y_t = y_{t-1} + \delta \]</p>
+<p>は時点ごとに \(\delta\) ずつ増えていく。こういう時系列データを線形トレンドという。</p>
+<p>これにさらにホワイトノイズ \(\varepsilon_t\) をのせたものを「ドリフト率 \(\delta\) の確率的トレンド」という</p>
+<p>\[ y_t = y_{t-1} + \delta + \varepsilon_t\]</p>
+<p>Julia を使って確率的トレンドをグラフにしてみよう。</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-julia" data-lang="julia"><span style="color:#66d9ef">using</span> Plots
+<span style="color:#66d9ef">using</span> Distributions
+gr()
+
+ndist <span style="color:#f92672">=</span> Normal(<span style="color:#ae81ff">0</span>, <span style="color:#ae81ff">4</span>) <span style="color:#75715e"># ホワイトノイズの確率分布</span>
+delt <span style="color:#f92672">=</span> <span style="color:#ae81ff">2</span>  <span style="color:#75715e"># ドリフト率</span>
+
+<span style="color:#75715e"># 配列を初期化</span>
+trends <span style="color:#f92672">=</span> zeros(<span style="color:#ae81ff">200</span>)
+<span style="color:#75715e"># 初期値をセット</span>
+trends[<span style="color:#ae81ff">1</span>] <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>
+<span style="color:#75715e"># データ作成</span>
+<span style="color:#66d9ef">for</span> i <span style="color:#66d9ef">in</span> <span style="color:#ae81ff">1</span><span style="color:#f92672">:</span>(length(trends)<span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>)
+    trends[i<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>] <span style="color:#f92672">=</span> trends[i] <span style="color:#f92672">+</span> delt <span style="color:#f92672">+</span> rand(ndist)
+<span style="color:#66d9ef">end</span>
+
+plot(trends)
+</code></pre></div><figure>
+    <img src="/ox-hugo/17e5f77d6030f7d7106e95ca7c36b7151b615d25.svg"/> 
+</figure>
+
+<h3 id="外因性">外因性</h3>
+<p>外部要因による影響のこと。</p>
+</article>
+ 
+      
+
+      <footer class="book-footer">
+        
+  <div class="flex flex-wrap justify-between">
+
+
+
+
+
+</div>
+
+ 
+        
+      </footer>
+
+      
+  
+  <div class="book-comments">
+
+</div>
+  
+ 
+
+      <label for="menu-control" class="hidden book-menu-overlay"></label>
+    </div>
+
+    
+    <aside class="book-toc">
+      
+  <nav id="TableOfContents">
+  <ul>
+    <li><a href="#時系列データとは">時系列データとは</a>
+      <ul>
+        <li><a href="#記号法">記号法</a></li>
+      </ul>
+    </li>
+    <li><a href="#データ生成過程--dgp-data-generating-process">データ生成過程(DGP : Data Generating Process)</a>
+      <ul>
+        <li><a href="#平均">平均</a></li>
+        <li><a href="#分散">分散</a></li>
+      </ul>
+    </li>
+    <li><a href="#時系列データの構造">時系列データの構造</a>
+      <ul>
+        <li><a href="#自己相関">自己相関</a></li>
+        <li><a href="#周期成分">周期成分</a></li>
+        <li><a href="#ホワイトノイズ">ホワイトノイズ</a></li>
+        <li><a href="#トレンド">トレンド</a></li>
+        <li><a href="#外因性">外因性</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+
+ 
+    </aside>
+    
+  </main>
+
+  
+</body>
+
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
