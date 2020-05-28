@@ -1,6 +1,6 @@
 baseURL = "http://hanakno863.github.io/learn-docs"
 languageCode = "en-us"
-title = "Analysis Documentations"
+title = "Learn Docs"
 theme = "book"
 BookMenuBundle = "/menu"
 
