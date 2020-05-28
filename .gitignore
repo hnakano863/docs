@@ -4,3 +4,4 @@
 .ob-jupyter
 Manifest.toml
 poetry.lock
+public/
