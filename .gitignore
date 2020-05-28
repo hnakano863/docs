@@ -1,0 +1,6 @@
+.envrc
+.venv
+.ipython
+.ob-jupyter
+Manifest.toml
+poetry.lock
