@@ -133,7 +133,7 @@ plt.plot(samples)
 plt.show()
 ```
 
-{{< figure src="/ox-hugo/2d77a7b50a6c20cd4a8a07c607ccb557597e2bb6.png" >}}  
+{{< figure src="/learn-docs/ox-hugo/ef82187943118cd668db16322865838b275283c0.png" >}}  
 
 まずは自己相関のコレログラム  
 
@@ -142,7 +142,7 @@ sm.graphics.tsa.plot_acf(samples)
 plt.show()
 ```
 
-{{< figure src="/ox-hugo/13713d4e68a40a365b103e1f7542567f7835d624.png" >}}  
+{{< figure src="/learn-docs/ox-hugo/d1072101ea8cfe92b05de149d4940217caab6d0f.png" >}}  
 
 縦軸が相関係数、横軸がデータ同士のラグの大きさである。ラグ 0 で相関係数 1 (自分自身との相関は 1)であり、ラグ 1 のとき相関係数 0.8 であることがわかる。しかし、実際には相関していないはずのラグ 2 以上のデータとも相関関係が見える。  
 
@@ -153,7 +153,7 @@ sm.graphics.tsa.plot_pacf(samples)
 plt.show()
 ```
 
-{{< figure src="/ox-hugo/64e43e6030c1cbb40f5adeaa0f66b2bc6a8e2b6a.png" >}}  
+{{< figure src="/learn-docs/ox-hugo/b327a81c8173654dcfb74b739f03560ed0352afc.png" >}}  
 
 偏自己相関のコレログラムを見れば、真実のところラグ 2 以上では相関関係がないということがわかる。  
 
@@ -190,7 +190,7 @@ plt.plot(white_noise)
 plt.show()
 ```
 
-{{< figure src="/ox-hugo/a478482ae6c517063f58ba1d9d2d34369054d9f9.png" >}}  
+{{< figure src="/learn-docs/ox-hugo/8288c9c9a488bdb0f1931df44ed323144ca0dd27.png" >}}  
 
 実際、このホワイトノイズの自己相関を確認しておこう。  
 
@@ -198,7 +198,7 @@ plt.show()
 sm.graphics.tsa.plot_acf(white_noise)
 ```
 
-![](/ox-hugo/20e218a41a96f9c19f06fc172e5d1ee84ea8b515.png)  
+![](/learn-docs/ox-hugo/8503a84eb294c44ba217b2e4efef31a9c1ae1a7b.png)  
 
 
 ### トレンド {#トレンド}
@@ -232,7 +232,7 @@ plt.plot(white_noise.cumsum())
 plt.show()
 ```
 
-{{< figure src="/ox-hugo/36a5f1f6f05dd5884364567dcc60b296b4c64b58.png" >}}  
+{{< figure src="/learn-docs/ox-hugo/9abaee2c5bef0e3de849187af1f5c9015e20ba8f.png" >}}  
 
 ランダムウォークの見た目は、データの生成のたびに大きくかわる。  
 
@@ -247,7 +247,7 @@ for i in range(2):
 plt.show()
 ```
 
-{{< figure src="/ox-hugo/005ef632b11226af7c50d9979560ec6916eb6daa.png" >}}  
+{{< figure src="/learn-docs/ox-hugo/90619e919d81f4f88a00b87cc228cf572d28eb18.png" >}}  
 
 
 #### ドリフト率 {#ドリフト率}
@@ -288,7 +288,7 @@ end
 plot(trends)
 ```
 
-{{< figure src="/ox-hugo/17e5f77d6030f7d7106e95ca7c36b7151b615d25.svg" >}}  
+{{< figure src="/learn-docs/ox-hugo/bf26f03314c3b3290e6eb3230755026e4fcc6241.svg" >}}  
 
 
 ### 外因性 {#外因性}
