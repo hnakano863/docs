@@ -14,7 +14,7 @@
 <link rel="manifest" href="/learn-docs/manifest.json">
 <link rel="icon" href="/learn-docs/favicon.png" type="image/x-icon">
 <link rel="stylesheet" href="/learn-docs/book.min.e161f1fe2b283b6a43c29a52fde96e2387fade573e78efa6701d44c8499da76b.css" integrity="sha256-4WHx/isoO2pDwppS/eluI4f63lc&#43;eO&#43;mcB1EyEmdp2s=">
-<script defer src="/learn-docs/en.search.min.ffd34d945aac3e607b56ff295677c7d9bb79d30d999fb542ba9358297a5c08a9.js" integrity="sha256-/9NNlFqsPmB7Vv8pVnfH2bt50w2Zn7VCupNYKXpcCKk="></script>
+<script defer src="/learn-docs/en.search.min.f188736a4613aa4e4bb5f349dc3df402652ea74ec0a1d0b2b28105f4ad6b06d4.js" integrity="sha256-8YhzakYTqk5LtfNJ3D30AmUup07AodCysoEF9K1rBtQ="></script>
 <link rel="alternate" type="application/rss+xml" href="http://hanakno863.github.io/learn-docs/docs/index.xml" title="Learn Docs" />
 <!--
 Made with Book Theme
@@ -31,7 +31,8 @@ https://github.com/alex-shpak/hugo-book
     processEnvironments: true,
     skipTags: ['script', 'noscript', 'style', 'textarea', 'pre'],
     TeX: { equationNumbers: { autoNumber: "AMS" },
-         extensions: ["AMSmath.js", "AMSsymbols.js"] }
+           extensions: ["AMSmath.js", "AMSsymbols.js"],
+    }
   }
   });
   MathJax.Hub.Queue(function() {
@@ -46,7 +47,9 @@ https://github.com/alex-shpak/hugo-book
 
   MathJax.Hub.Config({
   
-  TeX: { equationNumbers: { autoNumber: "AMS" } }
+      TeX: {
+          Macros: { bm: ["\\boldsymbol{#1}", 1] }
+      }
   });
 </script>
 
@@ -83,7 +86,11 @@ https://github.com/alex-shpak/hugo-book
 
 
   <ul>
-<li><a href="/learn-docs/docs/%E6%99%82%E7%B3%BB%E5%88%97%E5%88%86%E6%9E%90/"> <strong>時系列分析</strong> </a></li>
+<li><a href="/learn-docs/docs/%E6%99%82%E7%B3%BB%E5%88%97%E5%88%86%E6%9E%90/"> <strong>時系列分析</strong> </a>
+
+<ul>
+<li><a href="/learn-docs/docs/%E6%99%82%E7%B3%BB%E5%88%97%E5%88%86%E6%9E%90/state-space-model/">状態空間モデル</a></li>
+</ul></li>
 </ul>
 
 

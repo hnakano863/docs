@@ -1,0 +1,1013 @@
+<!DOCTYPE html>
+<html lang="en" dir=>
+
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="状態空間モデルの構成 状態空間モデルとは、直接観測されない「状態」の存在を仮定したモデルである。
+基本的なワークフローは、
+ 方程式によるデータの表現 統計手法を用いた状態/パラメタの推定  の 2 部に分かれる。
+方程式によるデータ表現 状態空間モデルでは、目に見えない状態変化と状態から得られる観測結果を 2 つの異なる方程式に分けて表現する。
+ 目に見えない状態の変化 : 状態方程式 状態から得られる観測結果 : 観測方程式  状態方程式 状態変化のプロセスを記述する方程式のことを状態方程式という。
+状態方程式の概念式は、
+{状態} = {前時点の状態を用いた予測値} &#43; {過程誤差}
+で表される。
+観測方程式 状態から観測値を得るプロセスを記述する方程式を観測方程式という。
+観測方程式の概念式は、
+{観測値} = {状態} &#43; {観測誤差}
+で表される。
+線形ガウス状態空間モデル 一次方程式でモデルが表現可能で、なおかつ誤差が正規分布に従うモデルのことを、線形ガウス状態空間モデルという。
+状態空間モデルそのものはかなり幅広い概念だが、時系列データ分析の初歩では、大抵の状態空間モデルは線形ガウス状態空間モデルを仮定している。
+線形ガウス状態空間モデルの場合は、状態の推定とモデルのパラメタの推定を分けて行うことができる。
+ 状態の推定: カルマンフィルタを使う。 モデルのパラメタの推定: 最尤法を使う。  この方法は、計算コストや実装コストが低く、ストリーム処理が可能で、オンライン予測に適している。
+以下では、線形ガウス状態空間モデルの概略を述べる。
+状態方程式と観測方程式 状態方程式 時点 \(t\) での状態を、\(\bm{\mu}_t\) とおく。ただし、 \(\bm{\mu}_t\) は \(D\) 次元ベクトルとする。
+このとき、線形ガウス状態空間モデルにおける状態方程式は、
+\[\begin{align} \bm{\mu}_t &amp;= T_t\bm{\mu}_{t-1} &#43; R_t\bm{\eta}_t, &amp; \bm{\eta}_t \sim \mathcal{N}(0, Q_t) \end{align}\]">
+<meta name="theme-color" content="#FFFFFF"><meta property="og:title" content="状態空間モデル" />
+<meta property="og:description" content="状態空間モデルの構成 状態空間モデルとは、直接観測されない「状態」の存在を仮定したモデルである。
+基本的なワークフローは、
+ 方程式によるデータの表現 統計手法を用いた状態/パラメタの推定  の 2 部に分かれる。
+方程式によるデータ表現 状態空間モデルでは、目に見えない状態変化と状態から得られる観測結果を 2 つの異なる方程式に分けて表現する。
+ 目に見えない状態の変化 : 状態方程式 状態から得られる観測結果 : 観測方程式  状態方程式 状態変化のプロセスを記述する方程式のことを状態方程式という。
+状態方程式の概念式は、
+{状態} = {前時点の状態を用いた予測値} &#43; {過程誤差}
+で表される。
+観測方程式 状態から観測値を得るプロセスを記述する方程式を観測方程式という。
+観測方程式の概念式は、
+{観測値} = {状態} &#43; {観測誤差}
+で表される。
+線形ガウス状態空間モデル 一次方程式でモデルが表現可能で、なおかつ誤差が正規分布に従うモデルのことを、線形ガウス状態空間モデルという。
+状態空間モデルそのものはかなり幅広い概念だが、時系列データ分析の初歩では、大抵の状態空間モデルは線形ガウス状態空間モデルを仮定している。
+線形ガウス状態空間モデルの場合は、状態の推定とモデルのパラメタの推定を分けて行うことができる。
+ 状態の推定: カルマンフィルタを使う。 モデルのパラメタの推定: 最尤法を使う。  この方法は、計算コストや実装コストが低く、ストリーム処理が可能で、オンライン予測に適している。
+以下では、線形ガウス状態空間モデルの概略を述べる。
+状態方程式と観測方程式 状態方程式 時点 \(t\) での状態を、\(\bm{\mu}_t\) とおく。ただし、 \(\bm{\mu}_t\) は \(D\) 次元ベクトルとする。
+このとき、線形ガウス状態空間モデルにおける状態方程式は、
+\[\begin{align} \bm{\mu}_t &amp;= T_t\bm{\mu}_{t-1} &#43; R_t\bm{\eta}_t, &amp; \bm{\eta}_t \sim \mathcal{N}(0, Q_t) \end{align}\]" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="http://hanakno863.github.io/learn-docs/docs/%E6%99%82%E7%B3%BB%E5%88%97%E5%88%86%E6%9E%90/state-space-model/" />
+
+<title>状態空間モデル | Learn Docs</title>
+<link rel="manifest" href="/learn-docs/manifest.json">
+<link rel="icon" href="/learn-docs/favicon.png" type="image/x-icon">
+<link rel="stylesheet" href="/learn-docs/book.min.e161f1fe2b283b6a43c29a52fde96e2387fade573e78efa6701d44c8499da76b.css" integrity="sha256-4WHx/isoO2pDwppS/eluI4f63lc&#43;eO&#43;mcB1EyEmdp2s=">
+<script defer src="/learn-docs/en.search.min.f188736a4613aa4e4bb5f349dc3df402652ea74ec0a1d0b2b28105f4ad6b06d4.js" integrity="sha256-8YhzakYTqk5LtfNJ3D30AmUup07AodCysoEF9K1rBtQ="></script>
+<!--
+Made with Book Theme
+https://github.com/alex-shpak/hugo-book
+-->
+
+  <script type="text/javascript" async
+  src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+  MathJax.Hub.Config({
+  tex2jax: {
+    inlineMath: [['$','$'], ['\\(','\\)']],
+    displayMath: [['$$','$$'], ['\\[', '\\]']],
+    processEscapes: true,
+    processEnvironments: true,
+    skipTags: ['script', 'noscript', 'style', 'textarea', 'pre'],
+    TeX: { equationNumbers: { autoNumber: "AMS" },
+           extensions: ["AMSmath.js", "AMSsymbols.js"],
+    }
+  }
+  });
+  MathJax.Hub.Queue(function() {
+    
+    
+    
+    var all = MathJax.Hub.getAllJax(), i;
+    for(i = 0; i < all.length; i += 1) {
+        all[i].SourceElement().parentNode.className += ' has-jax';
+    }
+  });
+
+  MathJax.Hub.Config({
+  
+      TeX: {
+          Macros: { bm: ["\\boldsymbol{#1}", 1] }
+      }
+  });
+</script>
+
+<link rel="stylesheet" href="http://hanakno863.github.io/learn-docscss/syntax.css" />
+
+</head>
+
+<body dir=>
+  <input type="checkbox" class="hidden" id="menu-control" />
+  <main class="container flex">
+    <aside class="book-menu">
+      
+  <nav>
+<h2 class="book-brand">
+  <a href="/learn-docs"><span>Learn Docs</span>
+  </a>
+</h2>
+
+
+<div class="book-search">
+  <input type="text" id="book-search-input" placeholder="Search" aria-label="Search" maxlength="64" data-hotkeys="s/" />
+  <div class="book-search-spinner hidden"></div>
+  <ul id="book-search-results"></ul>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+  <ul>
+<li><a href="/learn-docs/docs/%E6%99%82%E7%B3%BB%E5%88%97%E5%88%86%E6%9E%90/"> <strong>時系列分析</strong> </a>
+
+<ul>
+<li><a href="/learn-docs/docs/%E6%99%82%E7%B3%BB%E5%88%97%E5%88%86%E6%9E%90/state-space-model/"class=active>状態空間モデル</a></li>
+</ul></li>
+</ul>
+
+
+
+
+
+
+  
+<ul>
+  
+  <li>
+    <a href="https://github.com/hnakano863/learn-docs" target="_blank" rel="noopener">
+        Github
+      </a>
+  </li>
+  
+</ul>
+
+
+
+
+
+
+</nav>
+
+
+
+
+  <script>(function(){var menu=document.querySelector("aside.book-menu nav");addEventListener("beforeunload",function(event){localStorage.setItem("menu.scrollTop",menu.scrollTop);});menu.scrollTop=localStorage.getItem("menu.scrollTop");})();</script>
+
+
+ 
+    </aside>
+
+    <div class="book-page">
+      <header class="book-header">
+        
+  <div class="flex align-center justify-between">
+  <label for="menu-control">
+    <img src="/learn-docs/svg/menu.svg" class="book-icon" alt="Menu" />
+  </label>
+
+  <strong>状態空間モデル</strong>
+
+  <label for="toc-control">
+    
+    <img src="/learn-docs/svg/toc.svg" class="book-icon" alt="Table of Contents" />
+    
+  </label>
+</div>
+
+
+  
+    <input type="checkbox" class="hidden" id="toc-control" />
+    <aside class="hidden clearfix">
+      
+  <nav id="TableOfContents">
+<ul>
+<li>
+<ul>
+<li><a href="#状態空間モデルの構成">状態空間モデルの構成</a>
+<ul>
+<li><a href="#方程式によるデータ表現">方程式によるデータ表現</a>
+<ul>
+<li><a href="#状態方程式">状態方程式</a></li>
+<li><a href="#観測方程式">観測方程式</a></li>
+</ul></li>
+</ul></li>
+<li><a href="#線形ガウス状態空間モデル">線形ガウス状態空間モデル</a>
+<ul>
+<li><a href="#状態方程式と観測方程式">状態方程式と観測方程式</a>
+<ul>
+<li><a href="#状態方程式-1">状態方程式</a></li>
+<li><a href="#観測方程式-1">観測方程式</a></li>
+</ul></li>
+<li><a href="#フィルタリング">フィルタリング</a></li>
+</ul></li>
+<li><a href="#状態方程式-観測方程式によるデータ表現">状態方程式/観測方程式によるデータ表現</a>
+<ul>
+<li><a href="#線形回帰モデル">線形回帰モデル</a>
+<ul>
+<li><a href="#説明変数のないモデル">説明変数のないモデル</a></li>
+<li><a href="#1-次の自己回帰モデル">1 次の自己回帰モデル</a></li>
+</ul></li>
+<li><a href="#ローカルレベルモデル">ローカルレベルモデル</a>
+<ul>
+<li><a href="#期待値">期待値</a></li>
+<li><a href="#arima-モデルとの関係">ARIMA モデルとの関係</a></li>
+</ul></li>
+<li><a href="#ローカル線形トレンドモデル">ローカル線形トレンドモデル</a>
+<ul>
+<li><a href="#線形回帰モデルとの比較">線形回帰モデルとの比較</a></li>
+<li><a href="#行列による表現">行列による表現</a></li>
+</ul></li>
+<li><a href="#周期変動のモデル化">周期変動のモデル化</a>
+<ul>
+<li><a href="#ダミー変数の利用">ダミー変数の利用</a></li>
+<li><a href="#周期関数の利用">周期関数の利用</a></li>
+</ul></li>
+<li><a href="#基本構造時系列モデル">基本構造時系列モデル</a></li>
+<li><a href="#時変係数モデル">時変係数モデル</a></li>
+</ul></li>
+<li><a href="#カルマンフィルタによる推定法">カルマンフィルタによる推定法</a>
+<ul>
+<li><a href="#カルマンゲイン">カルマンゲイン</a></li>
+<li><a href="#ローカルレベルモデルでのカルマンフィルタ">ローカルレベルモデルでのカルマンフィルタ</a>
+<ul>
+<li><a href="#記号法">記号法</a></li>
+<li><a href="#カルマンフィルタの計算の流れ">カルマンフィルタの計算の流れ</a></li>
+<li><a href="#カルマンフィルタのまとめ">カルマンフィルタのまとめ</a></li>
+</ul></li>
+<li><a href="#カルマンフィルタの問題点">カルマンフィルタの問題点</a></li>
+</ul></li>
+<li><a href="#散漫カルマンフィルタ">散漫カルマンフィルタ</a></li>
+<li><a href="#平滑化">平滑化</a>
+<ul>
+<li><a href="#平滑化のアイディア">平滑化のアイディア</a></li>
+<li><a href="#平滑化の数式">平滑化の数式</a></li>
+<li><a href="#状態の予測値-フィルタ化推定量-平滑化状態">状態の予測値、フィルタ化推定量、平滑化状態</a></li>
+<li><a href="#状態平滑化漸化式">状態平滑化漸化式</a></li>
+</ul></li>
+<li><a href="#パラメタ推定">パラメタ推定</a></li>
+</ul></li>
+</ul>
+</nav>
+
+
+    </aside>
+  
+ 
+      </header>
+
+      
+      
+  <article class="markdown">
+
+<h2 id="状態空間モデルの構成">状態空間モデルの構成</h2>
+
+<p>状態空間モデルとは、直接観測されない「状態」の存在を仮定したモデルである。</p>
+
+<p>基本的なワークフローは、</p>
+
+<ol>
+<li>方程式によるデータの表現</li>
+<li>統計手法を用いた状態/パラメタの推定</li>
+</ol>
+
+<p>の 2 部に分かれる。</p>
+
+<h3 id="方程式によるデータ表現">方程式によるデータ表現</h3>
+
+<p>状態空間モデルでは、目に見えない状態変化と状態から得られる観測結果を 2 つの異なる方程式に分けて表現する。</p>
+
+<ul>
+<li>目に見えない状態の変化 : 状態方程式</li>
+<li>状態から得られる観測結果 : 観測方程式</li>
+</ul>
+
+<h4 id="状態方程式">状態方程式</h4>
+
+<p>状態変化のプロセスを記述する方程式のことを状態方程式という。</p>
+
+<p>状態方程式の概念式は、</p>
+
+<p>{状態} = {前時点の状態を用いた予測値} + {過程誤差}</p>
+
+<p>で表される。</p>
+
+<h4 id="観測方程式">観測方程式</h4>
+
+<p>状態から観測値を得るプロセスを記述する方程式を観測方程式という。</p>
+
+<p>観測方程式の概念式は、</p>
+
+<p>{観測値} = {状態} + {観測誤差}</p>
+
+<p>で表される。</p>
+
+<h2 id="線形ガウス状態空間モデル">線形ガウス状態空間モデル</h2>
+
+<p>一次方程式でモデルが表現可能で、なおかつ誤差が正規分布に従うモデルのことを、線形ガウス状態空間モデルという。</p>
+
+<p>状態空間モデルそのものはかなり幅広い概念だが、時系列データ分析の初歩では、大抵の状態空間モデルは線形ガウス状態空間モデルを仮定している。</p>
+
+<p>線形ガウス状態空間モデルの場合は、状態の推定とモデルのパラメタの推定を分けて行うことができる。</p>
+
+<ul>
+<li>状態の推定: カルマンフィルタを使う。</li>
+<li>モデルのパラメタの推定: 最尤法を使う。</li>
+</ul>
+
+<p>この方法は、計算コストや実装コストが低く、ストリーム処理が可能で、オンライン予測に適している。</p>
+
+<p>以下では、線形ガウス状態空間モデルの概略を述べる。</p>
+
+<h3 id="状態方程式と観測方程式">状態方程式と観測方程式</h3>
+
+<h4 id="状態方程式-1">状態方程式</h4>
+
+<p>時点 \(t\) での状態を、\(\bm{\mu}_t\) とおく。ただし、 \(\bm{\mu}_t\) は \(D\) 次元ベクトルとする。</p>
+
+<p>このとき、線形ガウス状態空間モデルにおける状態方程式は、</p>
+
+<p>\[\begin{align} \bm{\mu}_t &amp;= T_t\bm{\mu}_{t-1} + R_t\bm{\eta}_t, &amp; \bm{\eta}_t \sim \mathcal{N}(0, Q_t) \end{align}\]</p>
+
+<p>となる。</p>
+
+<p>ただし、記号法は以下の通りである。</p>
+
+<table>
+<thead>
+<tr>
+<th>変数</th>
+<th>説明</th>
+</tr>
+</thead>
+
+<tbody>
+<tr>
+<td>\(T_t\)</td>
+<td>状態 \(\bm{\mu}_{t-1}\) から \(\bm{\mu}_t\) へ移るときの状態変化を記述する行列。</td>
+</tr>
+
+<tr>
+<td>\(\bm{\eta}_t\)</td>
+<td>状態変化に伴う過程誤差のベクトル。 平均ゼロの正規分布に従う。</td>
+</tr>
+
+<tr>
+<td>\(R_t\)</td>
+<td>誤差 \(\bm{\eta}_t\) が状態へおよぼす影響を記述する行列。</td>
+</tr>
+
+<tr>
+<td>\(Q_t\)</td>
+<td>誤差 \(\bm{\eta}_t\) が従う正規分布の共分散行列。</td>
+</tr>
+</tbody>
+</table>
+
+<p>例えば、状態が ランダムウォーク である場合は、 \(T_t\) , \(R_t\) はともに \(D\) 次単位行列として、</p>
+
+<p>\[\begin{align} \bm{\mu}_t &amp;= \bm{\mu}_{t-1} + \bm{\eta}_t, &amp; \bm{\eta}_t \sim \mathcal{N}(0, Q_t) \end{align}\]</p>
+
+<p>となる。</p>
+
+<p>(参考)三次元空間上のランダムウォーク</p>
+
+<figure>
+    <img src="/learn-docs/ox-hugo/ff2fa1beceeee5332b25a53c0a7e644b58ae2869.svg"/> 
+</figure>
+
+
+<h4 id="観測方程式-1">観測方程式</h4>
+
+<p>時点 \(t\) での観測値を、\(\bm{y}_t\) とおく。ただし、 \(\bm{y}_t\) は \(E\) 次元ベクトルとする。</p>
+
+<p>このとき、線形ガウス状態空間モデルにおける観測方程式は、</p>
+
+<p>\[\begin{align} \bm{y}_t &amp;= Z_t\bm{\mu}_t + \bm{\varepsilon}_t, &amp; \bm{\varepsilon}_t \sim \mathcal{N}(0, H_t) \end{align}\]</p>
+
+<p>となる。</p>
+
+<p>ただし、記号法は以下の通りである。</p>
+
+<table>
+<thead>
+<tr>
+<th>変数</th>
+<th>説明</th>
+</tr>
+</thead>
+
+<tbody>
+<tr>
+<td>\(Z_t\)</td>
+<td>状態 \(\bm{\mu}_t\) を観測する過程を記述する行列。</td>
+</tr>
+
+<tr>
+<td>\(\bm{\varepsilon}_t\)</td>
+<td>観測誤差のベクトル。 平均ゼロの正規分布に従う。</td>
+</tr>
+
+<tr>
+<td>\(H_t\)</td>
+<td>誤差 \(\bm{\varepsilon}_t\) が従う正規分布の共分散行列。</td>
+</tr>
+</tbody>
+</table>
+
+<p>例えば、状態をそのまま観測する場合は、 \(Z_t\) は単位行列となる。従って観測方程式は、</p>
+
+<p>\[\begin{align} \bm{y}_t &amp;= \bm{\mu}_t + \bm{\varepsilon}_t, &amp; \bm{\varepsilon}_t \sim \mathcal{N}(0, H_t) \end{align}\]</p>
+
+<p>となる。</p>
+
+<h3 id="フィルタリング">フィルタリング</h3>
+
+<p>観測値を用いて状態の予測値を補正することをフィルタリングという。フィルタリングの流れは以下の図の通り</p>
+
+<figure>
+    <img src="/learn-docs/ox-hugo/plantuml-7iVm2P.png"/> 
+</figure>
+
+
+<h2 id="状態方程式-観測方程式によるデータ表現">状態方程式/観測方程式によるデータ表現</h2>
+
+<p>線形ガウス状態空間モデルの仲間のうち、いくつかの名前のついたモデルを以下で見ていく。これらを見ることによって、状態方程式と観測方程式による表現の方法について慣れてほしい。</p>
+
+<h3 id="線形回帰モデル">線形回帰モデル</h3>
+
+<h4 id="説明変数のないモデル">説明変数のないモデル</h4>
+
+<p>説明変数のない線形回帰モデルは最も簡単なモデルといえる。以下の式で表される。</p>
+
+<p>\[\begin{align}y_t &amp;= \alpha + v_t &amp; v_t \sim \mathcal{N}(0, \sigma^2) \end{align} \]</p>
+
+<p>これを状態方程式と観測方程式に分割するならば、</p>
+
+<p>\[ \left\{ \begin{align} \mu_t &amp;= \alpha \\<br />
+  y_t &amp;= \mu_t + v_t \end{align} \right. \]</p>
+
+<p>これは、状態は時刻に寄らず一定であり、分散一定の観測誤差だけがあるモデルとして解釈できる。</p>
+
+<h4 id="1-次の自己回帰モデル">1 次の自己回帰モデル</h4>
+
+<p>一次の自己回帰モデル AR(1)の式は、</p>
+
+<p>\[ \begin{align} y_t &amp;= c + \phi_1 y_{t-1} + w_t , &amp; w_t \sim \mathcal{N}(0,\sigma^2) \end{align} \]</p>
+
+<p>と表される。</p>
+
+<p>これを状態方程式と観測方程式を用いて表現すると、</p>
+
+<p>\[ \left\{ \begin{align} \mu_t &amp;= c + \phi_1 \mu_{t-1} + w_t \\\ y_t &amp;= \mu_t \end{align} \right. \]</p>
+
+<p>となる。</p>
+
+<p>AR モデルを状態空間モデルとして表すばあい、モデルがまるまる状態方程式に入る。<br />
+AR モデルは観測誤差がないものとしてモデリングされていることに注意。</p>
+
+<h3 id="ローカルレベルモデル">ローカルレベルモデル</h3>
+
+<p>過程誤差と観測誤差をともに含むモデルで、最も簡単な状態空間モデルのひとつ。以下の方程式で表される。</p>
+
+<p>\[ \left\{ \begin{align}
+\mu_t &amp;= \mu_{t-1} + w_t,  &amp; w_t \sim \mathcal{N}(0, \sigma_w^2) \\<br />
+y_t &amp;= \mu_t + v_t,  &amp; v_t \sim \mathcal{N}(0, \sigma_v^2) \\<br />
+\end{align} \right. \]</p>
+
+<p>状態方程式のみを見るとランダムウォーク系列である。従って、ローカルレベルモデルのことをランダムウォーク+ノイズモデルということがある。</p>
+
+<p>ローカルレベルモデルの疑似データとコレログラム</p>
+
+<figure>
+    <img src="/learn-docs/ox-hugo/5dc4908100f4d1ef38f6f80d0da26bb8153860cf.png"/> 
+</figure>
+
+
+<h4 id="期待値">期待値</h4>
+
+<p>時点 \(t-1\) までの状態がわかっているものとして、時点 \(t\) における \(\mu_t\) の期待値を考える。過程誤差および観測誤差は平均 0 の正規分布に従うため、期待値をとると消える。従って、</p>
+
+<p>\[ \mathrm{E}[\mu_t|\mu_{t-1}] = \mu_{t-1} \]</p>
+
+<p>すなわち、状態は時刻に寄らず一定であると考えられる。つまり、もしもローカルレベルモデルを使って予測を行うのなら、予測値は前の値をそのまま返すだけのものとなる。それゆえ、このモデルそのものは予測に役立つものではない。</p>
+
+<h4 id="arima-モデルとの関係">ARIMA モデルとの関係</h4>
+
+<p>ローカルレベルモデルにおいて、観測値の差分系列をとってみると、</p>
+
+<p>\[ \begin{align} \Delta y_t &amp;= y_t - y_{t-1} \\<br />
+    &amp;= (\mu_t + v_t) - (\mu_{t-1} + v_{t-1}) \\<br />
+    &amp;= (\mu_{t-1} + w_t + v_t) - (\mu_{t-1} + v_{t-1}) \\<br />
+    &amp;= w_t + v_t - v_{t-1} \ \end{align} \]</p>
+
+<p>すなわち、ローカルレベルモデルの差分系列は 1 次の移動平均モデル MA(1)で表せる。このことから、ローカルレベルモデルそれ自体は、ARIMA(0,1,1)と等価である。</p>
+
+<h3 id="ローカル線形トレンドモデル">ローカル線形トレンドモデル</h3>
+
+<p>ローカルレベルモデルの状態変化に時間変化するトレンドを加えたものを、ローカル線形トレンドモデルという。状態方程式と観測方程式は以下のとおり。</p>
+
+<p>\[ \left\{ \begin{align}
+\delta_t &amp;= \delta_{t-1} + \zeta_t, &amp; \zeta_t \sim \mathcal{N}(0,\sigma_{\zeta}^2) \\<br />
+\mu_t &amp;= \mu_{t-1} + \delta_{t-1} + w_t, &amp; w_t \sim \mathcal{N}(0, \sigma_w^2) \\<br />
+y_t &amp;= \mu_t + v_t, &amp; v_t \sim \mathcal{N}(0, \sigma_v^2) \\<br />
+\end{align} \right. \]</p>
+
+<h4 id="線形回帰モデルとの比較">線形回帰モデルとの比較</h4>
+
+<p>ローカル線形トレンドモデルへの理解を深めるために、線形回帰モデルと比較する。線形回帰モデルの方程式は、</p>
+
+<p>\[ \begin{align} y_t &amp;= \alpha + \beta t + v_t , &amp; v_t \sim \mathcal{N}(0, \sigma_v^2) \end{align} \]</p>
+
+<p>である。</p>
+
+<p>これをローカル線形トレンドモデルの方程式に従って状態方程式と観測方程式の形に直すと、</p>
+
+<p>\[ \left\{ \begin{align}
+\delta_t &amp;= \beta \\<br />
+\mu_t &amp;= \mu_{t-1} + \delta_{t-1} \\<br />
+y_t &amp;= \mu_t + v_t, &amp; v_t \sim \mathcal{N}(0, \sigma_v^2) \\<br />
+\end{align} \right. \]</p>
+
+<p>となる。ただし、 \(\mu_0 = \alpha\) とする。</p>
+
+<p>ローカル線形トレンドモデルと線形回帰モデルの方程式を比較することにより、ローカル線形トレンドモデルの特徴として以下の 2 点がわかる。</p>
+
+<ol>
+<li>トレンドの値が時間変化しうる。</li>
+<li>過程誤差を含む。</li>
+</ol>
+
+<h4 id="行列による表現">行列による表現</h4>
+
+<p>ローカル線形トレンドモデルは線形ガウス状態空間モデルの一つであるから、行列を用いて以下のように線形ガウス状態空間モデルの一般形にあてはめて表現できる。</p>
+
+<p>\[ \left\{ \begin{align} \begin{bmatrix}
+\mu_t \ \delta_t \ \end{bmatrix} &amp;= \begin{bmatrix} 1 &amp; 1 \\\ 0 &amp; 1 \\<br />
+\end{bmatrix} \begin{bmatrix} \mu_{t-1} \\\ \delta_{t-1} \ \end{bmatrix} + \bm{\eta}_t \\<br />
+y_t &amp;= \begin{bmatrix} 1 &amp; 0 \ \end{bmatrix} \begin{bmatrix} \mu_t \\\ \delta_t \ \end{bmatrix} + v_t \\<br />
+\end{align} \right. \]</p>
+
+<p>ただし、 \(\bm{\eta}_t \sim \mathcal{N}(0, Q_t)\) , \(v_t \sim \mathcal{N}(0, \sigma_v^2)\) である。<br />
+\(Q_t\) は過程誤差の共分散行列で、</p>
+
+<p>\[ Q_t = \begin{bmatrix} \sigma_{\zeta}^2 &amp; 0 \\\ 0 &amp; \sigma_w^2 \end{bmatrix} \]</p>
+
+<h3 id="周期変動のモデル化">周期変動のモデル化</h3>
+
+<h4 id="ダミー変数の利用">ダミー変数の利用</h4>
+
+<p>ダミー変数を導入することにより、周期的変動をモデリングできる。たとえば、頻度 4 の季節変動があるばあい、</p>
+
+<p>\[ \left\{ \begin{align}
+\gamma_{1,t} &amp;= -\gamma_{1,t-1}-\gamma_{2,t-1}-\gamma_{3,t-1} + \eta_t \,, &amp; \eta_t \sim \mathcal{N}(0, \sigma_{\eta}^2) \\<br />
+\gamma_{2,t} &amp;= \gamma_{1,t-1} &amp; \\<br />
+\gamma_{3,t} &amp;= \gamma_{2,t-1} &amp; \\<br />
+y_t &amp;= \gamma_{1,t} + v_t \,, &amp; v_t \sim \mathcal{N}(0,\sigma_v^2) \\<br />
+\end{align} \right. \]</p>
+
+<p>と表すことができる。</p>
+
+<p>これがきちんと周期をモデリングできていることを確認するために、以下で \(\gamma_{1, t+1}\) を計算する。(簡単のため、以下では過程誤差 \(\xi_t\) を無視する)</p>
+
+<p>第一式で \(t=t+1\) とすると、</p>
+
+<p>\[ \gamma_{1, t+1} = -\gamma_{1,t}-\gamma_{2,t}-\gamma_{3,t} \]</p>
+
+<p>これに \(t=t\) における結果を適用して \(\gamma_{1,t}\) , \(\gamma_{2,t}\) , \(\gamma_{3, t}\) を消去すると、</p>
+
+<p>\[ \gamma_{1,t+1} = -(-\gamma_{1,t-1}-\gamma_{2,t-1}-\gamma_{3,t-1})-\gamma_{1,t-1}-\gamma_{2,t-1} \]</p>
+
+<p>整理して、</p>
+
+<p>\[ \gamma_{1, t+1} = \gamma_{3, t-1} \]</p>
+
+<p>したがって、 \(\gamma_{1, t}\) を \(t=0\) から順に並べていくと、</p>
+
+<p>\[ \gamma_{1, 0}, \  -(\gamma_{1, 0}+\gamma_{2,0}+\gamma_{3,0}),\  \gamma_{3, 0},\  \gamma_{2, 0}, \  \gamma_{1, 0},\  \ldots \]</p>
+
+<p>というふうにローテーションする。従って、頻度 4 の季節変動が表現されている</p>
+
+<h4 id="周期関数の利用">周期関数の利用</h4>
+
+<p>ここでは詳しく述べないが、 \(\sin\) , \(\cos\) などの周期関数を用いて周期成分をモデリングすることもある</p>
+
+<h3 id="基本構造時系列モデル">基本構造時系列モデル</h3>
+
+<p>トレンド、周期変動、ホワイトノイズの和で表される時系列データのことを、 <strong>基本構造時系列モデル</strong> という</p>
+
+<p>基本構造時系列モデルは状態空間モデルを用いて表すことができる。</p>
+
+<p>ローカル線形トレンドモデルに季節項を入れたものと考えてよい。観測方程式のみ示す。</p>
+
+<p>\[ y_t = \mu_t + \gamma_t + v_t \]</p>
+
+<p>ただし、 \(\mu_t\) はトレンド成分, \(\gamma_t\) は季節成分を表す</p>
+
+<h3 id="時変係数モデル">時変係数モデル</h3>
+
+<p>ARIMAX のように、外生変数(回帰変数)を含むモデルを構築できる。これにより、異常値の補正などが可能となる。</p>
+
+<p>また、線形回帰モデルや ARIMAX とは異なり、外生変数が時間変化するモデルを作成できる。</p>
+
+<p>例えば、ローカルレベルモデルに時変係数を入れたモデルは、</p>
+
+<p>\[ \left\{ \begin{align}
+\beta_t &amp;= \beta_{t-1} + \tau_t \\<br />
+\mu_t &amp;= \mu_{t-1} + w_t \\<br />
+y_t &amp;= \mu_t + \beta_t \psi_t + v_t \\<br />
+\end{align} \right. \]</p>
+
+<p>ただし、 \(\tau_t\) , \(w_t\) , \(v_t\) は誤差項で、 \(\psi_t\) は外生変数、 \(\beta_t\) は時変係数とする。</p>
+
+<h2 id="カルマンフィルタによる推定法">カルマンフィルタによる推定法</h2>
+
+<p>基本の流れを習得するために、ローカルレベルモデルを前提とする。</p>
+
+<p>カルマンフィルタの基本の流れ</p>
+
+<ol>
+<li>1 時点先の状態の予測</li>
+<li>観測値を用いての状態の補正</li>
+</ol>
+
+<p>ローカルレベルモデルでは予測は前の時点と同じなので、ここでは補正の方法を扱う。補正前と補正後との関係式は、</p>
+
+<p>{補正後の状態} = {補正前の状態} + {カルマンゲイン} * {予測残差}</p>
+
+<p>補正後の状態のことを <strong>フィルタ化推定量</strong> という。</p>
+
+<h3 id="カルマンゲイン">カルマンゲイン</h3>
+
+<p>補正の大きさを制御する係数のことを、カルマンゲインという。</p>
+
+<p>カルマンゲインのアイディア</p>
+
+<ul>
+<li>状態の予測誤差が大きいとき: 状態の予測は外れやすいので、補正は大きくすべき。</li>
+<li>観測誤差が大きいとき: 観測値は信頼できないので、観測値による補正量は小くするべき。</li>
+</ul>
+
+<p>カルマンゲインの定義の概念式</p>
+
+<p>{カルマンゲイン} = {状態の予測誤差の分散} / ( {状態の予測誤差の分散} + {観測誤差の分散} )</p>
+
+<h3 id="ローカルレベルモデルでのカルマンフィルタ">ローカルレベルモデルでのカルマンフィルタ</h3>
+
+<h4 id="記号法">記号法</h4>
+
+<p>以下に、ローカルレベルモデルの式を再掲する。</p>
+
+<p>\[ \left\{ \begin{align}
+\mu_t &amp;= \mu_{t-1} + w_t, &amp; w_t \sim \mathcal{N}(0, \sigma_w^2) \\<br />
+y_t &amp;= \mu_t + v_t , &amp; v_t \sim \mathcal{N}(0, \sigma_v^2) \\<br />
+\end{align} \right. \]</p>
+
+<p>以下、いくつか記号を導入する。特に明記しなければ、今後も同様の記号を用いる。</p>
+
+<ol>
+<li>時点 \(t\) までの全ての観測値 \(\{y_1, \cdots ,y_t\}\) を \(Y_t\) とする。</li>
+<li>時点 \(t\) における観測値 \(y_t\) の予測値を \(\hat{y}_t\) とする。</li>
+
+<li><p>時点 \(t\) における状態 \(\mu_t\) の予測値を \(\hat{\mu}_t\) とする。予測値 \(\hat{\mu}_t\) は、前時点までの観測値 \(Y_{t-1}\) が得られている条件のもとで、状態方程式の期待値をとることで求める。従って、</p>
+
+<p>\[ \hat{\mu}_t = \mathrm{E}[\mu_t|Y_{t-1}] \]</p></li>
+
+<li><p>状態の予測値 \(\hat{\mu}_t\) を時点 \(t\) までの観測値 \(Y_t\) で補正したものを、フィルタ化推定量と呼び、\(\mu_{t|t}\) であらわす。フィルタ化推定量は \(Y_t\) が得られた条件のもとでの \(\mu_t\) の期待値である。従って、</p>
+
+<p>\[ \mu_{t|t} = \mathrm{E}[\mu_t|Y_t] \]</p></li>
+
+<li><p>時点 \(t\) における状態 \(\mu_{t}\) の予測誤差の分散を \(P_t\) で表す。<br />
+\(P_t\) は、 \(Y_{t-1}\) が与えられた条件のもとの \(\mu_t\) の分散である。従って、</p>
+
+<p>\[ P_t = \mathrm{Var}[\mu_t|Y_{t-1}] \]</p></li>
+
+<li><p>時点 \(t\) でのフィルタ化推定量 \(\mu_{t|t}\) の推定誤差の分散を \(P_{t|t}\) で表す。<br />
+\(P_{t|t}\) は、 \(Y_t\) が与えられた条件のもとでの状態 \(\mu_t\) の分散である。従って、</p>
+
+<p>\[ P_{t|t} = \mathrm{Var}[\mu_t|Y_t] \]</p></li>
+
+<li><p>時点 \(t\) での観測値 \(y_t\) の予測誤差の分散を \(F_t\) で表す。</p></li>
+
+<li><p>時点 \(t\) でのカルマンゲインを \(K_t\) で表す。</p></li>
+</ol>
+
+<h4 id="カルマンフィルタの計算の流れ">カルマンフィルタの計算の流れ</h4>
+
+<p>まず、時点 \(t\) における状態の予測値 \(\hat{\mu}_t\) を求める。ローカルレベルモデルでは、状態変化は起こらないので、前時点の状態をそのまま用いればよい。このとき、前時点の状態はすでに観測値によって補正されたフィルタ化推定量であることに注意する。従って、</p>
+
+<p>\[ \hat{\mu}_t = \mu_{t-1|t-1} \]</p>
+
+<p>次に、状態の予測誤差の分散 \(P_t\) を求める。<br />
+状態が \(t\) 時点にうつるのに伴って、過程誤差 \(w_t\) の大きさの分だけ状態の予測誤差が大きくなる。従って、</p>
+
+<p>\[ P_t = P_{t-1|t-1} + \sigma_w^2 \]</p>
+
+<p>次に、観測値の予測値 \(\hat{y}_t\) を求める。<br />
+ローカルレベルモデルでは、観測値と状態の予測値は等しいので、</p>
+
+<p>\[ \hat{y}_t = \hat{\mu}_t \]</p>
+
+<p>観測値の予測誤差の分散 \(F_t\) を求める。<br />
+観測値の予測誤差は、状態の予測誤差に観測誤差が加わるので、</p>
+
+<p>\[ F_t = P_t + \sigma_v^2 \]</p>
+
+<p>カルマンゲイン \(K_t\) を求める。<br />
+{カルマンゲイン} = {状態の予測誤差の分散} / ( {状態の予測誤差の分散} + {観測誤差の分散} )なので、</p>
+
+<p>\[ K_t = \frac{P_t}{P_t + \sigma_v^2} = \frac{P_t}{F_t} \]</p>
+
+<p>従って、時刻 \(t\) におけるフィルタ化推定量 \(\mu_{t|t}\) は、</p>
+
+<p>\[ \mu_{t|t} = \hat{\mu}_t + K_t (y_t - \hat{y}_t) \]</p>
+
+<p>となる。<br />
+また、状態の予測誤差のフィルタ化推定量 \(P_{t|t}\) も以下の式で求められる。</p>
+
+<p>\[ P_{t|t} = (1-K_t)P_t \]</p>
+
+<h4 id="カルマンフィルタのまとめ">カルマンフィルタのまとめ</h4>
+
+<!--list-separator-->
+
+<ul>
+<li><p>状態の予測</p>
+
+<p>\[\begin{align} \hat{\mu}_t &amp;= \mu_{t-1|t-1} \\<br />
+P_t &amp;= P_{t-1|t-1} + \sigma_w^2 \\<br />
+\end{align} \]</p></li>
+</ul>
+
+<!--list-separator-->
+
+<ul>
+<li><p>観測値の予測</p>
+
+<p>\[ \begin{align}
+\hat{y}_t &amp;= \hat{\mu}_t \\<br />
+F_t &amp;= P_t + \sigma_v^2 \\<br />
+\end{align} \]</p></li>
+</ul>
+
+<!--list-separator-->
+
+<ul>
+<li><p>カルマンゲイン</p>
+
+<p>\[ K_t = \frac{P_t}{F_t} \]</p></li>
+</ul>
+
+<!--list-separator-->
+
+<ul>
+<li><p>状態の補正</p>
+
+<p>\[ \begin{align}
+\mu_{t|t} &amp;= \hat{\mu}_t + K_t(y_t - \hat{y}_t) \\<br />
+P_{t|t} &amp;= (1-K_t)P_t \\<br />
+\end{align} \]</p></li>
+</ul>
+
+<h3 id="カルマンフィルタの問題点">カルマンフィルタの問題点</h3>
+
+<p>状態の予測を行うためには、前期の状態が必要になる。ところが、一番最初は前期の状態が存在しないので、 \(\mu_0\) と \(P_0\) に適当な初期値を設定しなければならない。この初期値に AIC などの情報量基準も依存してしまうので、できれば適当に決めることなしに解決する必要がある。</p>
+
+<h2 id="散漫カルマンフィルタ">散漫カルマンフィルタ</h2>
+
+<p>カルマンフィルタの初期値の問題を解決する方法。<br />
+\(P_0=\infty\) とする。(この初期化法を <strong>散漫初期化</strong> という)</p>
+
+<p>これによって、ローカルレベルモデルの場合は以下のように $&mu;_0$が消える。</p>
+
+<p>\[ \begin{align}
+\mu_{1|1} &amp;= \hat{\mu_1} + \cfrac{P_1}{P_1 + \sigma_v^2}(y_1 - \hat{y}_1) \\<br />
+&amp;= \mu_{0|0} + \cfrac{P_{0|0} + \sigma_w^2}{P_{0|0} + \sigma_w^2 + \sigma_v^2}(y_1 - \mu_{0|0}) \\<br />
+&amp;= \mu_{0|0} + y_1 - \mu_{0|0} \\<br />
+&amp;= y_1 \\<br />
+\end{align} \]</p>
+
+<p>また、 \(P_{1|1}\) についても、以下のように定まる。</p>
+
+<p>\[ \begin{align}
+P_{1|1} &amp;= (1-K_1)P_1 \\<br />
+&amp;= \left(1 - \cfrac{P_1}{P_1 + \sigma_v^2}  \right)P_1 \\<br />
+&amp;= \left(\cfrac{\sigma_v^2}{P_0 + \sigma_w^2 + \sigma_v^2}\right)(P_0 + \sigma_w^2) \\<br />
+&amp;= \sigma_v^2 \\<br />
+\end{align} \]</p>
+
+<h2 id="平滑化">平滑化</h2>
+
+<p>与えられた観測値を用いて、そのもととなる状態よりも過去の状態を補正することを平滑化という。平滑化によって補正された状態のことを <strong>平滑化状態</strong> と呼ぶ。</p>
+
+<h3 id="平滑化のアイディア">平滑化のアイディア</h3>
+
+<ol>
+<li>予測が外れるのは過去の状態が間違っているからだ。予測が大きく外れるほどに、補正も大きくしよう。</li>
+<li>前時点の状態について、不確かさが大きいのなら、補正も大きくしよう。</li>
+<li>観測値の予測誤差が大きいなら、観測値は信頼できないので補正は小さくしよう。</li>
+</ol>
+
+<p>従って、</p>
+
+<p>{平滑化状態} = {フィルタ化推定量} + {前時点の状態の分散}/{観測値の予測誤差} * {予測残差}</p>
+
+<h3 id="平滑化の数式">平滑化の数式</h3>
+
+<p>最新の時刻を \(T\) とする。時刻 \(t\) における平滑化状態とその分散をそれぞれ \(\tilde{\mu}_t\) , \(\tilde{P}_t\) とおく。これらは \(T\) までの全ての観測値 \(Y_T\) が得られた条件における、状態 \(\mu_t\) の条件つき期待値と分散なので、</p>
+
+<p>\[ \begin{align} \tilde{\mu}_t &amp;= \mathrm{E}[\mu_t|Y_T] \\<br />
+ \tilde{P}_t &amp;= \mathrm{Var}[\mu_t|Y_T] \end{align} \]</p>
+
+<p>と書ける。</p>
+
+<p>その他はカルマンフィルタの記述時の記号法に凖じる。</p>
+
+<p>例えば、 \(T-1\) 時点での平滑化推定量の計算式を数式に纏めると、</p>
+
+<p>\[ \tilde{\mu}_{T-1} = \mu_{T-1|T-1} + \frac{P_{T-1|T-1}}{F_T}(y_T - \hat{y}_T) \]</p>
+
+<h3 id="状態の予測値-フィルタ化推定量-平滑化状態">状態の予測値、フィルタ化推定量、平滑化状態</h3>
+
+<p>似て非なるものなので、少し整理する。<br />
+\(Y\) の添字に注意。</p>
+
+<ul>
+<li><p>状態の予測値:<br />
+\[ \hat{\mu}_t = \mathrm{E}[\mu_t|Y_{t-1}] \]</p></li>
+
+<li><p>フィルタ化推定量:<br />
+\[ \mu_{t|t} = \mathrm{E}[\mu_t|Y_t] \]</p></li>
+
+<li><p>平滑化状態:<br />
+\[ \tilde{\mu}_t = \mathrm{E}[\mu_t|Y_T] \]</p></li>
+</ul>
+
+<h3 id="状態平滑化漸化式">状態平滑化漸化式</h3>
+
+<p>平滑化状態の計算に用いる式。上に示した計算式では、任意の時刻 \(t\) における平滑化推定量の導出式にはなっていない。そこで、状態平滑化漸化式 \(r_t\) を導入して、一般形を得る。</p>
+
+<p>\[\begin{align}r_{t-1} &amp;= \frac{y_t - \hat{y}_t}{F_t} + (1 - K_t)r_t \\<br />
+\tilde{\mu}_t &amp;= \mu_{t|t} + P_{t|t}r_t \end{align} \]</p>
+
+<p>ただし、 \(r_t\) は未来から過去に向かって計算するものとし、<br />
+\(r_T=0\) とする。</p>
+
+<p>平滑化状態分散 \(\tilde{P}_t\) も平滑化状態と同様に状態平滑化漸化式 \(s_t\) を用いて求められる。</p>
+
+<p>\[ \begin{align} s_{t-1} &amp;= \frac{1}{F_t} + (1-K_t)^2s_t \\<br />
+\tilde{P}_t &amp;= P_{t|t} - P_{t|t}^2s_t \end{align} \]</p>
+
+<p>ただし、 \(s_T = 0\)</p>
+
+<h2 id="パラメタ推定">パラメタ推定</h2>
+
+<p>最尤推定によってパラメタ推定を行う。ここで推定されるパラメタは過程誤差の分散と観測誤差の分散である。</p>
+
+<p>観測値の予測残差 \(y_t - \hat{y}_t\) を \(d_t\) とおく。<br />
+\(d_t\) は正規分布に従うものと仮定する。</p>
+
+<p>\[ d_t \sim \mathcal{N}(0, F_t) \]</p>
+
+<p>\(d_t\) の確率密度関数 \(f(d_t)\) は、</p>
+
+<p>\[ f(d_t) = \frac{1}{\sqrt{2\pi F_t}}\exp\left(-\frac{d_t^2}{2F_t}\right) \]</p>
+
+<p>このとき、尤度を \(L\) とすると、</p>
+
+<p>\[ L = \prod_{t=1}^T f(d_t) = \prod_{t=1}^T \frac{1}{\sqrt{2\pi F_t}}\exp\left(-\frac{d_t^2}{2F_t}\right) \]</p>
+
+<p>尤度の自然対数をとって、対数尤度関数とすると、</p>
+
+<p>\[\log{L} = -\frac{T}{2}\log{2\pi} -\frac{1}{2}\sum_{t=1}^T\left\{ \log{F_t} + \frac{d_t^2}{F_t} \right\} \]</p>
+
+<p>実際には、定数項は無視するので、第二項を正負反転させたものを最小化するパラメタを探す。</p>
+
+<p>\[ \frac{1}{2}\sum_{t=1}^T\left\{\log{F_t} + \frac{d_t^2}{F_t} \right\} \]</p>
+</article>
+ 
+      
+
+      <footer class="book-footer">
+        
+  <div class="flex flex-wrap justify-between">
+
+
+
+
+
+</div>
+
+ 
+        
+      </footer>
+
+      
+  
+  <div class="book-comments">
+
+</div>
+  
+ 
+
+      <label for="menu-control" class="hidden book-menu-overlay"></label>
+    </div>
+
+    
+    <aside class="book-toc">
+      
+  <nav id="TableOfContents">
+<ul>
+<li>
+<ul>
+<li><a href="#状態空間モデルの構成">状態空間モデルの構成</a>
+<ul>
+<li><a href="#方程式によるデータ表現">方程式によるデータ表現</a>
+<ul>
+<li><a href="#状態方程式">状態方程式</a></li>
+<li><a href="#観測方程式">観測方程式</a></li>
+</ul></li>
+</ul></li>
+<li><a href="#線形ガウス状態空間モデル">線形ガウス状態空間モデル</a>
+<ul>
+<li><a href="#状態方程式と観測方程式">状態方程式と観測方程式</a>
+<ul>
+<li><a href="#状態方程式-1">状態方程式</a></li>
+<li><a href="#観測方程式-1">観測方程式</a></li>
+</ul></li>
+<li><a href="#フィルタリング">フィルタリング</a></li>
+</ul></li>
+<li><a href="#状態方程式-観測方程式によるデータ表現">状態方程式/観測方程式によるデータ表現</a>
+<ul>
+<li><a href="#線形回帰モデル">線形回帰モデル</a>
+<ul>
+<li><a href="#説明変数のないモデル">説明変数のないモデル</a></li>
+<li><a href="#1-次の自己回帰モデル">1 次の自己回帰モデル</a></li>
+</ul></li>
+<li><a href="#ローカルレベルモデル">ローカルレベルモデル</a>
+<ul>
+<li><a href="#期待値">期待値</a></li>
+<li><a href="#arima-モデルとの関係">ARIMA モデルとの関係</a></li>
+</ul></li>
+<li><a href="#ローカル線形トレンドモデル">ローカル線形トレンドモデル</a>
+<ul>
+<li><a href="#線形回帰モデルとの比較">線形回帰モデルとの比較</a></li>
+<li><a href="#行列による表現">行列による表現</a></li>
+</ul></li>
+<li><a href="#周期変動のモデル化">周期変動のモデル化</a>
+<ul>
+<li><a href="#ダミー変数の利用">ダミー変数の利用</a></li>
+<li><a href="#周期関数の利用">周期関数の利用</a></li>
+</ul></li>
+<li><a href="#基本構造時系列モデル">基本構造時系列モデル</a></li>
+<li><a href="#時変係数モデル">時変係数モデル</a></li>
+</ul></li>
+<li><a href="#カルマンフィルタによる推定法">カルマンフィルタによる推定法</a>
+<ul>
+<li><a href="#カルマンゲイン">カルマンゲイン</a></li>
+<li><a href="#ローカルレベルモデルでのカルマンフィルタ">ローカルレベルモデルでのカルマンフィルタ</a>
+<ul>
+<li><a href="#記号法">記号法</a></li>
+<li><a href="#カルマンフィルタの計算の流れ">カルマンフィルタの計算の流れ</a></li>
+<li><a href="#カルマンフィルタのまとめ">カルマンフィルタのまとめ</a></li>
+</ul></li>
+<li><a href="#カルマンフィルタの問題点">カルマンフィルタの問題点</a></li>
+</ul></li>
+<li><a href="#散漫カルマンフィルタ">散漫カルマンフィルタ</a></li>
+<li><a href="#平滑化">平滑化</a>
+<ul>
+<li><a href="#平滑化のアイディア">平滑化のアイディア</a></li>
+<li><a href="#平滑化の数式">平滑化の数式</a></li>
+<li><a href="#状態の予測値-フィルタ化推定量-平滑化状態">状態の予測値、フィルタ化推定量、平滑化状態</a></li>
+<li><a href="#状態平滑化漸化式">状態平滑化漸化式</a></li>
+</ul></li>
+<li><a href="#パラメタ推定">パラメタ推定</a></li>
+</ul></li>
+</ul>
+</nav>
+
+ 
+    </aside>
+    
+  </main>
+
+  
+</body>
+
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
