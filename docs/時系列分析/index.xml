@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>時系列分析 on Analysis Documentations</title>
+    <title>時系列分析 on Learn Docs</title>
     <link>http://hanakno863.github.io/learn-docs/docs/%E6%99%82%E7%B3%BB%E5%88%97%E5%88%86%E6%9E%90/</link>
-    <description>Recent content in 時系列分析 on Analysis Documentations</description>
+    <description>Recent content in 時系列分析 on Learn Docs</description>
     <generator>Hugo -- gohugo.io</generator>
-    <language>en-us</language>
+    <language>ja</language>
     
 	<atom:link href="http://hanakno863.github.io/learn-docs/docs/%E6%99%82%E7%B3%BB%E5%88%97%E5%88%86%E6%9E%90/index.xml" rel="self" type="application/rss+xml" />
     

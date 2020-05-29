@@ -1,6 +1,6 @@
 {
-  "name": "Analysis Documentations",
-  "short_name": "Analysis Documentations",
+  "name": "Learn Docs",
+  "short_name": "Learn Docs",
   "start_url": "/learn-docs/",
   "scope": "/learn-docs/",
   "display": "standalone",

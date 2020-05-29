@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>Tags on Analysis Documentations</title>
+    <title>Tags on Learn Docs</title>
     <link>http://hanakno863.github.io/learn-docs/tags/</link>
-    <description>Recent content in Tags on Analysis Documentations</description>
+    <description>Recent content in Tags on Learn Docs</description>
     <generator>Hugo -- gohugo.io</generator>
-    <language>en-us</language>
+    <language>ja</language>
     
 	<atom:link href="http://hanakno863.github.io/learn-docs/tags/index.xml" rel="self" type="application/rss+xml" />
     
