@@ -1,10 +1,12 @@
 baseURL = "http://hanakno863.github.io/learn-docs"
-languageCode = "en-us"
+languageCode = "ja"
 title = "Learn Docs"
 theme = "book"
-BookMenuBundle = "/menu"
+# Book configuration
+enableGitInfo = true
 
 [markup]
+  defaultMarkdownHandler = "blackfriday"
   [markup.highlight]
     pygmentsUseClasses=true
     codeFences = true
@@ -16,3 +18,12 @@ BookMenuBundle = "/menu"
     noClasses = true
     style = "monokai"
     tabWidth = 4
+
+[menu]
+  [[menu.after]]
+    name = "Github"
+    url = "https://github.com/hnakano863/learn-docs"
+    weight = 10
+
+[params]
+  BookMenuBundle = "/menu"
