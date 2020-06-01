@@ -11,6 +11,22 @@
     
     
     <item>
+      <title>Python による状態空間モデルの実装法</title>
+      <link>http://hanakno863.github.io/learn-docs/docs/%E6%99%82%E7%B3%BB%E5%88%97%E5%88%86%E6%9E%90/state-space-python/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>http://hanakno863.github.io/learn-docs/docs/%E6%99%82%E7%B3%BB%E5%88%97%E5%88%86%E6%9E%90/state-space-python/</guid>
+      <description>Python で線形ガウス状態空間モデルを実現するには、統計分析向けライブラリの statsmodels  を用いるとよい。
+statsmodels での線形ガウス状態空間モデルの式 statsmodels での線形ガウス状態空間モデルの式は、前の記事で導入した式と若干異なるので、注意が必要。実際に statsmodels で採用されている形式での線形ガウス状態空間モデルの式を示す。
+\[ \begin{align} y_t &amp;amp;= Z_t \alpha_t + d_t + \varepsilon_t, &amp;amp; \varepsilon_t \sim \mathcal{N}(0, H_t) \\
+\alpha_{t+1} &amp;amp;= T_t \alpha_t + c_t + R_t \eta_t, &amp;amp; \eta_t \sim \mathcal{N}(0, Q_t) \\
+\end{align} \]
+第 1 式の、\(y_t\) についての式が観測方程式である。
+いくつかのベクトルについては、 statsmodels 固有の名前が与えられている。
+   記号 名称 説明     \(Z_t\) design    \(d_t\) obs_intercept    \(H_t\) obs_cov 観測誤差の共分散   \(T_t\) transition    \(c_t\) state_intercept    \(R_t\) selection    \(Q_t\) state_cov 過程誤差の共分散    ローカル線形トレンドモデルの実装 ローカル線形トレンドモデルの式を下記に再掲する。</description>
+    </item>
+    
+    <item>
       <title>状態空間モデル</title>
       <link>http://hanakno863.github.io/learn-docs/docs/%E6%99%82%E7%B3%BB%E5%88%97%E5%88%86%E6%9E%90/state-space-model/</link>
       <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>

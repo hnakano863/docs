@@ -1,0 +1,786 @@
+<!DOCTYPE html>
+<html lang="en" dir=>
+
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Python で線形ガウス状態空間モデルを実現するには、統計分析向けライブラリの statsmodels  を用いるとよい。
+statsmodels での線形ガウス状態空間モデルの式 statsmodels での線形ガウス状態空間モデルの式は、前の記事で導入した式と若干異なるので、注意が必要。実際に statsmodels で採用されている形式での線形ガウス状態空間モデルの式を示す。
+\[ \begin{align} y_t &amp;= Z_t \alpha_t &#43; d_t &#43; \varepsilon_t, &amp; \varepsilon_t \sim \mathcal{N}(0, H_t) \\
+\alpha_{t&#43;1} &amp;= T_t \alpha_t &#43; c_t &#43; R_t \eta_t, &amp; \eta_t \sim \mathcal{N}(0, Q_t) \\
+\end{align} \]
+第 1 式の、\(y_t\) についての式が観測方程式である。
+いくつかのベクトルについては、 statsmodels 固有の名前が与えられている。
+   記号 名称 説明     \(Z_t\) design    \(d_t\) obs_intercept    \(H_t\) obs_cov 観測誤差の共分散   \(T_t\) transition    \(c_t\) state_intercept    \(R_t\) selection    \(Q_t\) state_cov 過程誤差の共分散    ローカル線形トレンドモデルの実装 ローカル線形トレンドモデルの式を下記に再掲する。">
+<meta name="theme-color" content="#FFFFFF"><meta property="og:title" content="Python による状態空間モデルの実装法" />
+<meta property="og:description" content="Python で線形ガウス状態空間モデルを実現するには、統計分析向けライブラリの statsmodels  を用いるとよい。
+statsmodels での線形ガウス状態空間モデルの式 statsmodels での線形ガウス状態空間モデルの式は、前の記事で導入した式と若干異なるので、注意が必要。実際に statsmodels で採用されている形式での線形ガウス状態空間モデルの式を示す。
+\[ \begin{align} y_t &amp;= Z_t \alpha_t &#43; d_t &#43; \varepsilon_t, &amp; \varepsilon_t \sim \mathcal{N}(0, H_t) \\
+\alpha_{t&#43;1} &amp;= T_t \alpha_t &#43; c_t &#43; R_t \eta_t, &amp; \eta_t \sim \mathcal{N}(0, Q_t) \\
+\end{align} \]
+第 1 式の、\(y_t\) についての式が観測方程式である。
+いくつかのベクトルについては、 statsmodels 固有の名前が与えられている。
+   記号 名称 説明     \(Z_t\) design    \(d_t\) obs_intercept    \(H_t\) obs_cov 観測誤差の共分散   \(T_t\) transition    \(c_t\) state_intercept    \(R_t\) selection    \(Q_t\) state_cov 過程誤差の共分散    ローカル線形トレンドモデルの実装 ローカル線形トレンドモデルの式を下記に再掲する。" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="http://hanakno863.github.io/learn-docs/docs/%E6%99%82%E7%B3%BB%E5%88%97%E5%88%86%E6%9E%90/state-space-python/" />
+
+<title>Python による状態空間モデルの実装法 | Learn Docs</title>
+<link rel="manifest" href="/learn-docs/manifest.json">
+<link rel="icon" href="/learn-docs/favicon.png" type="image/x-icon">
+<link rel="stylesheet" href="/learn-docs/book.min.e161f1fe2b283b6a43c29a52fde96e2387fade573e78efa6701d44c8499da76b.css" integrity="sha256-4WHx/isoO2pDwppS/eluI4f63lc&#43;eO&#43;mcB1EyEmdp2s=">
+<script defer src="/learn-docs/en.search.min.08b4c0f85c69936dbc51d40395344c7fa4a60bfa91c2fa3a4bd10e2d301740f4.js" integrity="sha256-CLTA&#43;Fxpk228UdQDlTRMf6SmC/qRwvo6S9EOLTAXQPQ="></script>
+<!--
+Made with Book Theme
+https://github.com/alex-shpak/hugo-book
+-->
+
+  <script type="text/javascript" async
+  src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+  MathJax.Hub.Config({
+  tex2jax: {
+    inlineMath: [['$','$'], ['\\(','\\)']],
+    displayMath: [['$$','$$'], ['\\[', '\\]']],
+    processEscapes: true,
+    processEnvironments: true,
+    skipTags: ['script', 'noscript', 'style', 'textarea', 'pre'],
+    TeX: { equationNumbers: { autoNumber: "AMS" },
+           extensions: ["AMSmath.js", "AMSsymbols.js"],
+    }
+  }
+  });
+  MathJax.Hub.Queue(function() {
+    
+    
+    
+    var all = MathJax.Hub.getAllJax(), i;
+    for(i = 0; i < all.length; i += 1) {
+        all[i].SourceElement().parentNode.className += ' has-jax';
+    }
+  });
+
+  MathJax.Hub.Config({
+  
+      TeX: {
+          Macros: { bm: ["\\boldsymbol{#1}", 1] }
+      }
+  });
+</script>
+
+<link rel="stylesheet" href="http://hanakno863.github.io/learn-docscss/syntax.css" />
+
+</head>
+
+<body dir=>
+  <input type="checkbox" class="hidden" id="menu-control" />
+  <main class="container flex">
+    <aside class="book-menu">
+      
+  <nav>
+<h2 class="book-brand">
+  <a href="/learn-docs"><span>Learn Docs</span>
+  </a>
+</h2>
+
+
+<div class="book-search">
+  <input type="text" id="book-search-input" placeholder="Search" aria-label="Search" maxlength="64" data-hotkeys="s/" />
+  <div class="book-search-spinner hidden"></div>
+  <ul id="book-search-results"></ul>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+  <ul>
+<li><a href="/learn-docs/docs/%E6%99%82%E7%B3%BB%E5%88%97%E5%88%86%E6%9E%90/"> <strong>時系列分析</strong> </a>
+
+<ul>
+<li><a href="/learn-docs/docs/%E6%99%82%E7%B3%BB%E5%88%97%E5%88%86%E6%9E%90/state-space-model/">状態空間モデル</a></li>
+<li><a href="/learn-docs/docs/%E6%99%82%E7%B3%BB%E5%88%97%E5%88%86%E6%9E%90/state-space-python/"class=active>状態空間モデルの実装例</a></li>
+</ul></li>
+</ul>
+
+
+
+
+
+
+  
+<ul>
+  
+  <li>
+    <a href="https://github.com/hnakano863/learn-docs" target="_blank" rel="noopener">
+        Github
+      </a>
+  </li>
+  
+</ul>
+
+
+
+
+
+
+</nav>
+
+
+
+
+  <script>(function(){var menu=document.querySelector("aside.book-menu nav");addEventListener("beforeunload",function(event){localStorage.setItem("menu.scrollTop",menu.scrollTop);});menu.scrollTop=localStorage.getItem("menu.scrollTop");})();</script>
+
+
+ 
+    </aside>
+
+    <div class="book-page">
+      <header class="book-header">
+        
+  <div class="flex align-center justify-between">
+  <label for="menu-control">
+    <img src="/learn-docs/svg/menu.svg" class="book-icon" alt="Menu" />
+  </label>
+
+  <strong>Python による状態空間モデルの実装法</strong>
+
+  <label for="toc-control">
+    
+    <img src="/learn-docs/svg/toc.svg" class="book-icon" alt="Table of Contents" />
+    
+  </label>
+</div>
+
+
+  
+    <input type="checkbox" class="hidden" id="toc-control" />
+    <aside class="hidden clearfix">
+      
+  <nav id="TableOfContents">
+<ul>
+<li>
+<ul>
+<li><a href="#statsmodels-での線形ガウス状態空間モデルの式">statsmodels での線形ガウス状態空間モデルの式</a></li>
+<li><a href="#ローカル線形トレンドモデルの実装">ローカル線形トレンドモデルの実装</a>
+<ul>
+<li><a href="#モデリングフレームワーク">モデリングフレームワーク</a>
+<ul>
+<li><a href="#init"><code>__init__()</code></a></li>
+<li><a href="#update--params"><code>update(params)</code></a></li>
+<li><a href="#transform-untransform">transform/untransform</a></li>
+<li><a href="#まとめ">まとめ</a></li>
+</ul></li>
+</ul></li>
+<li><a href="#サンプルデータ分析">サンプルデータ分析</a>
+<ul>
+<li><a href="#予測">予測</a></li>
+<li><a href="#ナイーブ予測との比較">ナイーブ予測との比較</a></li>
+</ul></li>
+</ul></li>
+</ul>
+</nav>
+
+
+    </aside>
+  
+ 
+      </header>
+
+      
+      
+  <article class="markdown">
+
+<p>Python で線形ガウス状態空間モデルを実現するには、統計分析向けライブラリの <a href="https://statsmodels.org"> <code>statsmodels</code> </a> を用いるとよい。</p>
+
+<h2 id="statsmodels-での線形ガウス状態空間モデルの式">statsmodels での線形ガウス状態空間モデルの式</h2>
+
+<p><code>statsmodels</code> での線形ガウス状態空間モデルの式は、前の記事で導入した式と若干異なるので、注意が必要。実際に <code>statsmodels</code> で採用されている形式での線形ガウス状態空間モデルの式を示す。</p>
+
+<p>\[ \begin{align}
+y_t &amp;= Z_t \alpha_t + d_t + \varepsilon_t, &amp; \varepsilon_t \sim \mathcal{N}(0, H_t) \\<br />
+\alpha_{t+1} &amp;= T_t \alpha_t + c_t + R_t \eta_t, &amp; \eta_t \sim \mathcal{N}(0, Q_t) \\<br />
+\end{align} \]</p>
+
+<p>第 1 式の、\(y_t\) についての式が観測方程式である。</p>
+
+<p>いくつかのベクトルについては、 <code>statsmodels</code> 固有の名前が与えられている。</p>
+
+<table>
+<thead>
+<tr>
+<th>記号</th>
+<th>名称</th>
+<th>説明</th>
+</tr>
+</thead>
+
+<tbody>
+<tr>
+<td>\(Z_t\)</td>
+<td><code>design</code></td>
+<td></td>
+</tr>
+
+<tr>
+<td>\(d_t\)</td>
+<td><code>obs_intercept</code></td>
+<td></td>
+</tr>
+
+<tr>
+<td>\(H_t\)</td>
+<td><code>obs_cov</code></td>
+<td>観測誤差の共分散</td>
+</tr>
+
+<tr>
+<td>\(T_t\)</td>
+<td><code>transition</code></td>
+<td></td>
+</tr>
+
+<tr>
+<td>\(c_t\)</td>
+<td><code>state_intercept</code></td>
+<td></td>
+</tr>
+
+<tr>
+<td>\(R_t\)</td>
+<td><code>selection</code></td>
+<td></td>
+</tr>
+
+<tr>
+<td>\(Q_t\)</td>
+<td><code>state_cov</code></td>
+<td>過程誤差の共分散</td>
+</tr>
+</tbody>
+</table>
+
+<h2 id="ローカル線形トレンドモデルの実装">ローカル線形トレンドモデルの実装</h2>
+
+<p>ローカル線形トレンドモデルの式を下記に再掲する。</p>
+
+<p>\[ \begin{align}
+y_t &amp; = \mu_t + \varepsilon_t \qquad &amp; \varepsilon_t \sim N(0, \sigma_\varepsilon^2) \\<br />
+\mu_{t+1} &amp; = \mu_t + \nu_t + \xi_t &amp; \xi_t \sim N(0, \sigma_\xi^2) \\<br />
+\nu_{t+1} &amp; = \nu_t + \zeta_t &amp; \zeta_t \sim N(0, \sigma_\zeta^2) \\<br />
+\end{align} \]</p>
+
+<p>ただし、第 1 式が観測方程式、第 3 式がトレンド変化に関する式である。</p>
+
+<p><code>statsmodels</code> では行列を用いた表現を前提とするので、上記ローカル線形トレンドモデルの式を行列を用いて書き直す。</p>
+
+<p>\[ \begin{align}
+y_t &amp; = \begin{bmatrix} 1 &amp; 0 \end{bmatrix} \begin{bmatrix} \mu_t \\\ \nu_t \end{bmatrix} + \varepsilon_t
+\\\ \begin{bmatrix} \mu_{t+1} \\\ \nu_{t+1} \end{bmatrix} &amp;= \begin{bmatrix} 1 &amp; 1 \\\ 0 &amp; 1 \end{bmatrix} \begin{bmatrix} \mu_t \\\ \nu_t \end{bmatrix} + \begin{bmatrix} \xi_t \\\ \zeta_t \end{bmatrix} \\<br />
+\end{align} \]</p>
+
+<p>このとき、推定すべきパラメタは、\(\sigma^2_\varepsilon\) , \(\sigma^2_\xi\) , \(\sigma^2_\zeta\) である。</p>
+
+<p>ただし、 \(\xi_t\) と \(\zeta_t\) はひとつのベクトルにまとまっているので、 <code>state_cov</code> \(Q_t\) は \((2 \times 2)\) の行列になることに注意。</p>
+
+<p>\[ \begin{align}
+H_t &amp; = \begin{bmatrix} \sigma_\varepsilon^2 \end{bmatrix} \\<br />
+Q_t &amp; = \begin{bmatrix} \sigma_\xi^2 &amp; 0 \\\ 0 &amp; \sigma_\zeta^2 \end{bmatrix}
+\end{align} \]</p>
+
+<h3 id="モデリングフレームワーク">モデリングフレームワーク</h3>
+
+<p>観測データから、カルマンフィルタと最尤法を用いて状態とパラメタを推定したい。それを実現するには、 <code>statsmodels.tsa.statespace.MLEModel</code> を継承したクラスを作成すればよい。ちなみに MLE は最尤推定(Maximum Likelyhood Estimator)の略。</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="color:#f92672">import</span> statsmodels.api <span style="color:#f92672">as</span> sm
+
+<span style="color:#66d9ef">class</span> <span style="color:#a6e22e">LocalLinearTrend</span>(sm<span style="color:#f92672">.</span>tsa<span style="color:#f92672">.</span>statespace<span style="color:#f92672">.</span>MLEModel):
+
+    <span style="color:#66d9ef">def</span> __init__(self, endog):</code></pre></div>
+<p>この新しく作成するモデルには、必ず以下のメソッドを定義する。</p>
+
+<h4 id="init"><code>__init__()</code></h4>
+
+<p>観測データを <code>endog</code> として引数にとる。<br />
+<code>__init__()</code> では、モデルの方程式と状態の初期化方法を定義しなければならない。</p>
+
+<!--list-separator-->
+
+<ul>
+<li><p>モデル式の定義</p>
+
+<p>モデル式の定義方法から説明する。</p>
+
+<p>まず、状態ベクトルの次元数 <code>k_states</code> と、過程誤差ベクトルの次元数 <code>k_posdef</code> を指定する。ローカル線形トレンドモデルの場合、どちらも 2 である。</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="color:#66d9ef">def</span> __init__(self, endog):
+    k_states <span style="color:#f92672">=</span> k_posdef <span style="color:#f92672">=</span> <span style="color:#ae81ff">2</span></code></pre></div>
+<p>次に、状態空間行列を定義する。状態空間行列とは、 \(Z_t\) や \(d_t\) などの <code>statsmodels</code> で名前のついている行列のことである。デフォルトではすべて零行列となっているので、変更しておきたい部分だけ定義すればよい。</p>
+
+<p>ローカル線形トレンドモデルの場合に定義するのは、以下の表の通り。</p>
+
+<table>
+<thead>
+<tr>
+<th>行列</th>
+<th>名前</th>
+<th>値</th>
+</tr>
+</thead>
+
+<tbody>
+<tr>
+<td>\(Z_t\)</td>
+<td><code>design</code></td>
+<td>\(\begin{bmatrix} 1 &amp; 0 \ \end{bmatrix}\)</td>
+</tr>
+
+<tr>
+<td>\(T_t\)</td>
+<td><code>transition</code></td>
+<td>\(\begin{bmatrix} 1 &amp; 1 \\\ 0 &amp; 1 \ \end{bmatrix}\)</td>
+</tr>
+
+<tr>
+<td>\(R_t\)</td>
+<td><code>selection</code></td>
+<td>単位行列</td>
+</tr>
+</tbody>
+</table>
+
+<p>とくに、 <code>selection</code> は単位行列であることが多いのだが、うっかりで定義し忘れやすいので注意。</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="color:#75715e"># 状態空間行列は self.ssm に格納する。</span>
+<span style="color:#75715e"># ssm は多分 state space matrix の略。</span>
+<span style="color:#f92672">import</span> numpy <span style="color:#f92672">as</span> np
+    
+self<span style="color:#f92672">.</span>ssm[<span style="color:#e6db74">&#39;design&#39;</span>] <span style="color:#f92672">=</span> np<span style="color:#f92672">.</span>array([<span style="color:#ae81ff">1</span>, <span style="color:#ae81ff">0</span>])
+self<span style="color:#f92672">.</span>ssm[<span style="color:#e6db74">&#39;transition&#39;</span>] <span style="color:#f92672">=</span> np<span style="color:#f92672">.</span>array([[<span style="color:#ae81ff">1</span>, <span style="color:#ae81ff">1</span>],
+                                   [<span style="color:#ae81ff">0</span>, <span style="color:#ae81ff">1</span>]])
+self<span style="color:#f92672">.</span>ssm[<span style="color:#e6db74">&#39;selection&#39;</span>] <span style="color:#f92672">=</span> np<span style="color:#f92672">.</span>eye(k_states)  <span style="color:#75715e"># 2×2 の単位行列</span></code></pre></div></li>
+</ul>
+
+<!--list-separator-->
+
+<ul>
+<li><p>状態の初期化</p>
+
+<p>カルマンフィルタを実現するためには、\(t=0\) のときの状態ベクトルとの平均と分散を定める必要がある。</p>
+
+<p><code>MLEModel</code> には、初期化を助けるための関数がそなわっているので、どの関数を選ぶかを指定するだけでよい。</p>
+
+<ul>
+<li><code>initialize_known(initial_state, initial_state_cov)</code> : 初期値の確率分布がわかっているときに使う。</li>
+<li><code>initialize_stationary</code> : ARMA などのように、定常状態であることがわかっているときに使う。</li>
+<li><code>initialize_approximate_diffuse</code> : 散漫初期化をする。上記 2 つが適切でないときに使うと考えてよい。
+<br /></li>
+</ul>
+
+<p>散漫初期化や定常状態の場合</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="color:#75715e"># 初期化は親クラスの機能を使う</span>
+super(LocalLinearTrend, self)<span style="color:#f92672">.</span>__init__(
+    endog,
+    k_states<span style="color:#f92672">=</span>k_states,
+    k_posdef<span style="color:#f92672">=</span>k_posdef,
+    initialization<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;approximate_diffuse&#34;</span>
+    <span style="color:#75715e"># initialization=&#34;stationary&#34;</span>
+)</code></pre></div>
+<p>初期値がわかっているとき</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python">super(LocalLinearTrend, self)<span style="color:#f92672">.</span>__init__(
+    endog,
+    k_states<span style="color:#f92672">=</span>k_states,
+    k_posdef<span style="color:#f92672">=</span>k_posdef,
+    initialization<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;known&#34;</span>,
+    initial_state<span style="color:#f92672">=</span>np<span style="color:#f92672">.</span>array([<span style="color:#ae81ff">0</span>,<span style="color:#ae81ff">0</span>])  <span style="color:#75715e"># 初期値の平均ベクトル。</span>
+    initial_state_cov<span style="color:#f92672">=</span>np<span style="color:#f92672">.</span>array([[<span style="color:#ae81ff">50</span>, <span style="color:#ae81ff">0</span>],
+                                [<span style="color:#ae81ff">0</span>, <span style="color:#ae81ff">30</span>]])  <span style="color:#75715e"># 初期値の共分散行列。</span>
+)</code></pre></div></li>
+</ul>
+
+<h4 id="update--params"><code>update(params)</code></h4>
+
+<p>最尤法を用いてパラメタを推定するときに、 <code>MLEModel</code> がパラメタの更新に用いるメソッド。新たに計算されたパラメタをそれぞれどこに代入すればいいかを設定する。</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="color:#a6e22e">@property</span>
+<span style="color:#66d9ef">def</span> <span style="color:#a6e22e">param_names</span>(self):
+    <span style="color:#e6db74">&#34;&#34;&#34;
+</span><span style="color:#e6db74">    推定するパラメタの名前。
+</span><span style="color:#e6db74">    分析結果を表示するときにもこの名前が使われる。
+</span><span style="color:#e6db74">    &#34;&#34;&#34;</span>
+    <span style="color:#75715e"># ローカル線形トレンドモデルで推定するパラメタは、</span>
+    <span style="color:#75715e"># 観測誤差の分散/状態変化の誤差の分散/トレンド変化の誤差の分散の三つ</span>
+    <span style="color:#66d9ef">return</span> [<span style="color:#e6db74">&#39;var.measurement&#39;</span>, <span style="color:#e6db74">&#39;var.state&#39;</span>, <span style="color:#e6db74">&#39;var.trend&#39;</span>]
+
+<span style="color:#a6e22e">@property</span>
+<span style="color:#66d9ef">def</span> <span style="color:#a6e22e">start_params</span>(self):
+    <span style="color:#e6db74">&#34;&#34;&#34;
+</span><span style="color:#e6db74">    3 つのパラメタの初期値。
+</span><span style="color:#e6db74">    わりと適当でいいけど、絶対に取り得ない値だけは避ける。
+</span><span style="color:#e6db74">    例えば、分散は 0 以下にはならないので、必ず正の値にする。
+</span><span style="color:#e6db74">    &#34;&#34;&#34;</span>
+    <span style="color:#75715e"># 今回は観測値の分散を 3 つのパラメタの初期値とする。</span>
+    <span style="color:#66d9ef">return</span> [np<span style="color:#f92672">.</span>std(self<span style="color:#f92672">.</span>endog)] <span style="color:#f92672">*</span> <span style="color:#ae81ff">3</span>
+
+<span style="color:#66d9ef">def</span> <span style="color:#a6e22e">update</span>(self, params, <span style="color:#f92672">*</span>args, <span style="color:#f92672">**</span>kwargs):
+    <span style="color:#75715e"># まずは親クラスの結果を受け取る。</span>
+    params <span style="color:#f92672">=</span> super(LocalLinearTrend, self)<span style="color:#f92672">.</span>update(params, <span style="color:#f92672">*</span>args, <span style="color:#f92672">**</span>kwargs)
+    <span style="color:#75715e"># パラメタは array-like</span>
+    <span style="color:#75715e"># 格納順序は`param-names`で決めたとおり。</span>
+    <span style="color:#75715e"># 観測誤差の分散</span>
+    self<span style="color:#f92672">.</span>ssm[<span style="color:#e6db74">&#39;obs_cov&#39;</span>,<span style="color:#ae81ff">0</span>,<span style="color:#ae81ff">0</span>] <span style="color:#f92672">=</span> params[<span style="color:#ae81ff">0</span>]
+    <span style="color:#75715e"># 過程誤差の分散</span>
+    <span style="color:#75715e"># `state_cov` は 2×2 の行列で、更新するのはその対角成分だけ。</span>
+    self<span style="color:#f92672">.</span>ssm[<span style="color:#e6db74">&#39;state_cov&#39;</span>,<span style="color:#ae81ff">0</span>,<span style="color:#ae81ff">0</span>] <span style="color:#f92672">=</span> params[<span style="color:#ae81ff">1</span>]
+    self<span style="color:#f92672">.</span>ssm[<span style="color:#e6db74">&#39;state_cov&#39;</span>,<span style="color:#ae81ff">1</span>,<span style="color:#ae81ff">1</span>] <span style="color:#f92672">=</span> params[<span style="color:#ae81ff">2</span>]</code></pre></div>
+<h4 id="transform-untransform">transform/untransform</h4>
+
+<p>パラメタの推定を行うときに、 <code>statsmodels</code> の最適化アルゴリズムでは、パラメタの値の範囲を制限できない。しかし、推定したいパラメタが分散のように負の値をとらないだとか、なんらかの制約条件をもつことは多い。</p>
+
+<p>この問題の解決のために、パラメタをそのまま最適化アルゴリズムで求めるのではなく、何らかの値の変換を介することができるように設計されている。</p>
+
+<p>ローカル線形トレンドモデルの場合、パラメタは全て分散なので、値は負にならない。従って、最適化アルゴリズムで求めた値(=負もとりうる)を 2 乗する。</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">transform</span>(self, unconstrained):
+    <span style="color:#e6db74">&#34;&#34;&#34;
+</span><span style="color:#e6db74">    最適化アルゴリズムの出力値を尤度評価の時に変換する。
+</span><span style="color:#e6db74">    unconstrained は np.ndarray
+</span><span style="color:#e6db74">    &#34;&#34;&#34;</span>
+    <span style="color:#75715e"># ローカル線形トレンドモデルのパラメタは分散なので負にならない。</span>
+    <span style="color:#75715e"># 従って、`unconstrained` を 2 乗する</span>
+    <span style="color:#66d9ef">return</span> unconstrained <span style="color:#f92672">**</span> <span style="color:#ae81ff">2</span>
+
+<span style="color:#66d9ef">def</span> <span style="color:#a6e22e">untransform</span>(self, constrained):
+    <span style="color:#e6db74">&#34;&#34;&#34;
+</span><span style="color:#e6db74">    パラメタを最適化アルゴリズムに渡すときの変換。
+</span><span style="color:#e6db74">    constrained は np.ndarray
+</span><span style="color:#e6db74">    基本的に transform の逆の演算を行えばよい。
+</span><span style="color:#e6db74">    &#34;&#34;&#34;</span>
+    <span style="color:#66d9ef">return</span> constrained <span style="color:#f92672">**</span> <span style="color:#ae81ff">0.5</span></code></pre></div>
+<h4 id="まとめ">まとめ</h4>
+
+<p>これまでのコードをひとまとめにする。以下がローカル線形トレンドモデルの実装になる。</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="color:#f92672">import</span> numpy <span style="color:#f92672">as</span> np
+<span style="color:#f92672">import</span> pandas <span style="color:#f92672">as</span> pd
+<span style="color:#f92672">from</span> scipy.stats <span style="color:#f92672">import</span> norm
+<span style="color:#f92672">import</span> statsmodels.api <span style="color:#f92672">as</span> sm
+
+<span style="color:#66d9ef">class</span> <span style="color:#a6e22e">LocalLinearTrend</span>(sm<span style="color:#f92672">.</span>tsa<span style="color:#f92672">.</span>statespace<span style="color:#f92672">.</span>MLEModel):
+    <span style="color:#e6db74">&#34;&#34;&#34;ローカル線形トレンドモデル&#34;&#34;&#34;</span>
+
+    <span style="color:#66d9ef">def</span> __init__(self, endog):
+        k_states <span style="color:#f92672">=</span> k_posdef <span style="color:#f92672">=</span> <span style="color:#ae81ff">2</span>
+
+        <span style="color:#75715e"># 状態空間の初期化</span>
+        super(LocalLinearTrend, self)<span style="color:#f92672">.</span>__init__(
+            endog,
+            k_states<span style="color:#f92672">=</span>k_states,
+            k_posdef<span style="color:#f92672">=</span>k_posdef,
+            initialization<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;approximate_diffuse&#34;</span>,
+            loglikelihood_burn<span style="color:#f92672">=</span>k_states  <span style="color:#75715e"># 尤度を求めるときに使う</span>
+        )
+
+        <span style="color:#75715e"># 状態空間行列の指定</span>
+        self<span style="color:#f92672">.</span>ssm[<span style="color:#e6db74">&#39;design&#39;</span>] <span style="color:#f92672">=</span> np<span style="color:#f92672">.</span>array([<span style="color:#ae81ff">1</span>,<span style="color:#ae81ff">0</span>])
+        self<span style="color:#f92672">.</span>ssm[<span style="color:#e6db74">&#39;transition&#39;</span>] <span style="color:#f92672">=</span> np<span style="color:#f92672">.</span>array([[<span style="color:#ae81ff">1</span>,<span style="color:#ae81ff">1</span>], [<span style="color:#ae81ff">0</span>,<span style="color:#ae81ff">1</span>]])
+        self<span style="color:#f92672">.</span>ssm[<span style="color:#e6db74">&#39;selection&#39;</span>] <span style="color:#f92672">=</span> np<span style="color:#f92672">.</span>eye(k_states)
+
+        <span style="color:#75715e"># 過程誤差のパラメタの更新に使う</span>
+        <span style="color:#75715e"># np.diag_indices は行列の対角成分を返す関数</span>
+        self<span style="color:#f92672">.</span>_state_cov_idx <span style="color:#f92672">=</span> (<span style="color:#e6db74">&#39;state_cov&#39;</span>,) <span style="color:#f92672">+</span> np<span style="color:#f92672">.</span>diag_indices(k_posdef)
+
+    <span style="color:#a6e22e">@property</span>
+    <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">param_names</span>(self):
+        <span style="color:#e6db74">&#34;&#34;&#34;推定するパラメタの名前&#34;&#34;&#34;</span>
+        <span style="color:#66d9ef">return</span> [<span style="color:#e6db74">&#39;var.measurement&#39;</span>, <span style="color:#e6db74">&#39;var.level&#39;</span>, <span style="color:#e6db74">&#39;var.trend&#39;</span>]
+
+    <span style="color:#a6e22e">@property</span>
+    <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">start_params</span>(self):
+        <span style="color:#e6db74">&#34;&#34;&#34;パラメタの初期値&#34;&#34;&#34;</span>
+        <span style="color:#66d9ef">return</span> [np<span style="color:#f92672">.</span>std(self<span style="color:#f92672">.</span>endog)] <span style="color:#f92672">*</span> <span style="color:#ae81ff">3</span>
+
+    <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">transform_params</span>(self, unconstrained):
+        <span style="color:#e6db74">&#34;&#34;&#34;最適化 -&gt; 尤度評価の際の変換&#34;&#34;&#34;</span>
+        <span style="color:#66d9ef">return</span> unconstrained <span style="color:#f92672">**</span> <span style="color:#ae81ff">2</span>
+
+    <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">untrandform_params</span>(self, constrained):
+        <span style="color:#e6db74">&#34;&#34;&#34;尤度評価-&gt;最適化の際の変換&#34;&#34;&#34;</span>
+        returnconstrained <span style="color:#f92672">**</span> <span style="color:#ae81ff">0.5</span>
+
+    <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">update</span>(self, params, <span style="color:#f92672">*</span>args, <span style="color:#f92672">**</span>kwargs):
+        <span style="color:#e6db74">&#34;&#34;&#34;パラメタの更新&#34;&#34;&#34;</span>
+        params <span style="color:#f92672">=</span> super(LocalLinearTrend, self)<span style="color:#f92672">.</span>update(params, <span style="color:#f92672">*</span>args, <span style="color:#f92672">**</span>kwargs)
+        <span style="color:#75715e"># 観測誤差の分散</span>
+        self<span style="color:#f92672">.</span>ssm[<span style="color:#e6db74">&#39;obs_cov&#39;</span>,<span style="color:#ae81ff">0</span>,<span style="color:#ae81ff">0</span>] <span style="color:#f92672">=</span> params[<span style="color:#ae81ff">0</span>]
+        <span style="color:#75715e"># 過程誤差の分散</span>
+        self<span style="color:#f92672">.</span>ssm[self<span style="color:#f92672">.</span>_state_cov_idx] <span style="color:#f92672">=</span> params[<span style="color:#ae81ff">1</span>:]</code></pre></div>
+<h2 id="サンプルデータ分析">サンプルデータ分析</h2>
+
+<p>分析の感覚をつかむために、サンプルデータセットに作成したモデルを適用する。</p>
+
+<p>サンプルには、 <a href="https://vincentarelbundock.github.io/Rdatasets/"> <code>Rdatasets</code> </a>の <code>BJsales</code> を使う。</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python">bjsales <span style="color:#f92672">=</span> sm<span style="color:#f92672">.</span>datasets<span style="color:#f92672">.</span>get_rdataset(<span style="color:#e6db74">&#34;BJsales&#34;</span>, <span style="color:#e6db74">&#34;datasets&#34;</span>)
+<span style="color:#75715e"># メタデータ</span>
+<span style="color:#66d9ef">print</span>(bjsales<span style="color:#f92672">.</span>__doc__)
+<span style="color:#66d9ef">print</span>(<span style="color:#e6db74">&#39;=&#39;</span><span style="color:#f92672">*</span><span style="color:#ae81ff">80</span>)
+<span style="color:#75715e"># データシェマ</span>
+bjsales<span style="color:#f92672">.</span>data<span style="color:#f92672">.</span>info()
+<span style="color:#66d9ef">print</span>(<span style="color:#e6db74">&#39;=&#39;</span><span style="color:#f92672">*</span><span style="color:#ae81ff">80</span>)
+<span style="color:#75715e"># データの先頭 5 行</span>
+bjsales<span style="color:#f92672">.</span>data<span style="color:#f92672">.</span>head()</code></pre></div><div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-text" data-lang="text">+---------+-----------------+
+| BJsales | R Documentation |
++---------+-----------------+
+
+Sales Data with Leading Indicator
+---------------------------------
+
+Description
+~~~~~~~~~~~
+
+The sales time series ``BJsales`` and leading indicator ``BJsales.lead``
+each contain 150 observations. The objects are of class ``&#34;ts&#34;``.
+
+Usage
+~~~~~
+
+::
+
+   BJsales
+   BJsales.lead
+
+Source
+~~~~~~
+
+The data are given in Box &amp; Jenkins (1976). Obtained from the Time
+Series Data Library at
+http://www-personal.buseco.monash.edu.au/~hyndman/TSDL/
+
+References
+~~~~~~~~~~
+
+G. E. P. Box and G. M. Jenkins (1976): *Time Series Analysis,
+Forecasting and Control*, Holden-Day, San Francisco, p. 537.
+
+P. J. Brockwell and R. A. Davis (1991): *Time Series: Theory and
+Methods*, Second edition, Springer Verlag, NY, pp. 414.
+
+================================================================================
+&lt;class &#39;pandas.core.frame.DataFrame&#39;&gt;
+RangeIndex: 150 entries, 0 to 149
+Data columns (total 2 columns):
+ #   Column  Non-Null Count  Dtype  
+---  ------  --------------  -----  
+ 0   time    150 non-null    int64  
+ 1   value   150 non-null    float64
+dtypes: float64(1), int64(1)
+memory usage: 2.5 KB
+================================================================================
+   time  value
+0     1  200.1
+1     2  199.5
+2     3  199.4
+3     4  198.9
+4     5  199.0</code></pre></div><div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="color:#f92672">import</span> matplotlib.pyplot <span style="color:#f92672">as</span> plt
+
+<span style="color:#75715e"># 必要なのは value のみ</span>
+ts <span style="color:#f92672">=</span> bjsales<span style="color:#f92672">.</span>data[<span style="color:#e6db74">&#39;value&#39;</span>]
+
+<span style="color:#75715e"># どんなデータしているか、グラフで見る。</span>
+fig <span style="color:#f92672">=</span> plt<span style="color:#f92672">.</span>figure(constrained_layout<span style="color:#f92672">=</span>True, figsize<span style="color:#f92672">=</span>(<span style="color:#ae81ff">8</span>, <span style="color:#ae81ff">5</span>))
+gs <span style="color:#f92672">=</span> fig<span style="color:#f92672">.</span>add_gridspec(<span style="color:#ae81ff">2</span>,<span style="color:#ae81ff">2</span>)
+ax1 <span style="color:#f92672">=</span> fig<span style="color:#f92672">.</span>add_subplot(gs[<span style="color:#ae81ff">0</span>,:])
+ts<span style="color:#f92672">.</span>plot(ax<span style="color:#f92672">=</span>ax1)
+ax1<span style="color:#f92672">.</span>set_title(<span style="color:#e6db74">&#39;BJ Sales Data&#39;</span>)
+
+ax2 <span style="color:#f92672">=</span> fig<span style="color:#f92672">.</span>add_subplot(gs[<span style="color:#ae81ff">1</span>,<span style="color:#ae81ff">0</span>])
+sm<span style="color:#f92672">.</span>graphics<span style="color:#f92672">.</span>tsa<span style="color:#f92672">.</span>plot_acf(ts, ax<span style="color:#f92672">=</span>ax2)
+ax2<span style="color:#f92672">.</span>set_title(<span style="color:#e6db74">&#34;Autocorrelation&#34;</span>)
+
+ax3 <span style="color:#f92672">=</span> fig<span style="color:#f92672">.</span>add_subplot(gs[<span style="color:#ae81ff">1</span>,<span style="color:#ae81ff">1</span>])
+sm<span style="color:#f92672">.</span>graphics<span style="color:#f92672">.</span>tsa<span style="color:#f92672">.</span>plot_pacf(ts,ax<span style="color:#f92672">=</span>ax3)
+ax3<span style="color:#f92672">.</span>set_title(<span style="color:#e6db74">&#34;Partial Autocorrelation&#34;</span>)
+plt<span style="color:#f92672">.</span>show()</code></pre></div>
+<figure>
+    <img src="/learn-docs/ox-hugo/a653d09dbab7af2b519b23cbd13289378dcd244d.png"/> 
+</figure>
+
+
+<p>これにモデルを適用する</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python">model <span style="color:#f92672">=</span> LocalLinearTrend(np<span style="color:#f92672">.</span>log(ts))
+result <span style="color:#f92672">=</span> model<span style="color:#f92672">.</span>fit()
+result<span style="color:#f92672">.</span>summary()</code></pre></div><div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-text" data-lang="text">&lt;class &#39;statsmodels.iolib.summary.Summary&#39;&gt;
+&#34;&#34;&#34;
+                           Statespace Model Results                           
+==============================================================================
+Dep. Variable:                  value   No. Observations:                  150
+Model:               LocalLinearTrend   Log Likelihood                 544.866
+Date:                Mon, 01 Jun 2020   AIC                          -1083.732
+Time:                        17:02:47   BIC                          -1074.740
+Sample:                             0   HQIC                         -1080.079
+                                - 150                                         
+Covariance Type:                  opg                                         
+===================================================================================
+                      coef    std err          z      P&gt;|z|      [0.025      0.975]
+-----------------------------------------------------------------------------------
+var.measurement  2.971e-11   2.98e-06   9.99e-06      1.000   -5.83e-06    5.83e-06
+var.level        2.778e-05   7.44e-06      3.735      0.000    1.32e-05    4.24e-05
+var.trend        2.296e-06   1.01e-06      2.264      0.024    3.09e-07    4.28e-06
+===================================================================================
+Ljung-Box (Q):                       43.58   Jarque-Bera (JB):                 0.54
+Prob(Q):                              0.32   Prob(JB):                         0.76
+Heteroskedasticity (H):               0.35   Skew:                            -0.00
+Prob(H) (two-sided):                  0.00   Kurtosis:                         3.30
+===================================================================================
+
+Warnings:
+[1] Covariance matrix calculated using the outer product of gradients (complex-step).
+&#34;&#34;&#34;</code></pre></div>
+<p>予測残差がホワイトノイズに近いほど、よいモデルといえる。</p>
+
+<p>ホワイトノイズは正規分布で、自己相関がゼロで、分散が一定だった。</p>
+
+<p>Ljung-Box 検定(自己相関の検定)と Jarque-Bera 検定(正規性の検定)の結果から、残差は正規分布に従い、かつ、自己相関もないといえる。</p>
+
+<p>ただし、Heteroskedasticity test(分散不均一性検定)の結果を見ると、分散が一定であるとは言えなさそうである。このことから、時間変化する分散をモデルに組込めば更に精度を上げられると考えられる。</p>
+
+<p>予測残差の分布は <code>plot_diagnostics()</code> で見ることもできる。</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python">fig <span style="color:#f92672">=</span> plt<span style="color:#f92672">.</span>figure(figsize<span style="color:#f92672">=</span>(<span style="color:#ae81ff">8</span>, <span style="color:#ae81ff">6</span>))
+result<span style="color:#f92672">.</span>plot_diagnostics(fig<span style="color:#f92672">=</span>fig)</code></pre></div>
+<p><img src="/learn-docs/ox-hugo/3ccdd66ff7b9f77db377376ff8ac7ee7bb4cd46c.png" alt="" /></p>
+
+<h3 id="予測">予測</h3>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python">predict <span style="color:#f92672">=</span> result<span style="color:#f92672">.</span>get_prediction()
+forecast <span style="color:#f92672">=</span> result<span style="color:#f92672">.</span>get_forecast(<span style="color:#ae81ff">30</span>)
+
+fig, ax <span style="color:#f92672">=</span> plt<span style="color:#f92672">.</span>subplots(figsize<span style="color:#f92672">=</span>(<span style="color:#ae81ff">9</span>,<span style="color:#ae81ff">6</span>))
+<span style="color:#75715e"># 観測データを黒色×マークで表す</span>
+ts<span style="color:#f92672">.</span>plot(style<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;.:k&#39;</span>, ax<span style="color:#f92672">=</span>ax, label<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;Observations&#39;</span>)
+np<span style="color:#f92672">.</span>exp(predict<span style="color:#f92672">.</span>predicted_mean)<span style="color:#f92672">.</span>plot(ax<span style="color:#f92672">=</span>ax, label<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;One-step-ahead Prediction&#39;</span>)
+predict_ci <span style="color:#f92672">=</span> predict<span style="color:#f92672">.</span>conf_int(alpha<span style="color:#f92672">=</span><span style="color:#ae81ff">0.8</span>)
+predict_index <span style="color:#f92672">=</span> np<span style="color:#f92672">.</span>arange(len(predict_ci))
+ax<span style="color:#f92672">.</span>fill_between(predict_index[<span style="color:#ae81ff">2</span>:], np<span style="color:#f92672">.</span>exp(predict_ci)<span style="color:#f92672">.</span>iloc[<span style="color:#ae81ff">2</span>:, <span style="color:#ae81ff">0</span>], np<span style="color:#f92672">.</span>exp(predict_ci)<span style="color:#f92672">.</span>iloc[<span style="color:#ae81ff">2</span>:, <span style="color:#ae81ff">1</span>], alpha<span style="color:#f92672">=</span><span style="color:#ae81ff">0.1</span>)
+
+np<span style="color:#f92672">.</span>exp(forecast<span style="color:#f92672">.</span>predicted_mean)<span style="color:#f92672">.</span>plot(ax<span style="color:#f92672">=</span>ax, style<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;r&#39;</span>, label<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;Forecast&#39;</span>)
+forecast_ci <span style="color:#f92672">=</span> forecast<span style="color:#f92672">.</span>conf_int()
+forecast_index <span style="color:#f92672">=</span> np<span style="color:#f92672">.</span>arange(len(predict_ci), len(predict_ci) <span style="color:#f92672">+</span> len(forecast_ci))
+ax<span style="color:#f92672">.</span>fill_between(forecast_index, np<span style="color:#f92672">.</span>exp(forecast_ci)<span style="color:#f92672">.</span>iloc[:, <span style="color:#ae81ff">0</span>], np<span style="color:#f92672">.</span>exp(forecast_ci)<span style="color:#f92672">.</span>iloc[:, <span style="color:#ae81ff">1</span>], alpha<span style="color:#f92672">=</span><span style="color:#ae81ff">0.1</span>)
+
+<span style="color:#75715e"># Cleanup the image</span>
+ax<span style="color:#f92672">.</span>set_ylim(<span style="color:#ae81ff">150</span>, None)
+legend <span style="color:#f92672">=</span> ax<span style="color:#f92672">.</span>legend(loc<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;upper left&#39;</span>, bbox_to_anchor<span style="color:#f92672">=</span>(<span style="color:#ae81ff">0</span>, <span style="color:#ae81ff">1</span>));</code></pre></div>
+<figure>
+    <img src="/learn-docs/ox-hugo/5570483b45fdb00a6d3c43d0395d6c8bde7974d2.png"/> 
+</figure>
+
+
+<h3 id="ナイーブ予測との比較">ナイーブ予測との比較</h3>
+
+<p>このモデルを使うことに価値があるかどうかを考えてみる。最も単純なランダムウォークと比較する。</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python">model_rwalk <span style="color:#f92672">=</span> sm<span style="color:#f92672">.</span>tsa<span style="color:#f92672">.</span>UnobservedComponents(np<span style="color:#f92672">.</span>log(ts), level<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;rwalk&#39;</span>)
+res_rwalk <span style="color:#f92672">=</span> model_rwalk<span style="color:#f92672">.</span>fit()
+res_rwalk<span style="color:#f92672">.</span>summary()</code></pre></div><div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-text" data-lang="text">&lt;class &#39;statsmodels.iolib.summary.Summary&#39;&gt;
+&#34;&#34;&#34;
+                        Unobserved Components Results                         
+==============================================================================
+Dep. Variable:                  value   No. Observations:                  150
+Model:                    random walk   Log Likelihood                 535.509
+Date:                Mon, 01 Jun 2020   AIC                          -1069.017
+Time:                        17:02:50   BIC                          -1066.013
+Sample:                             0   HQIC                         -1067.797
+                                - 150                                         
+Covariance Type:                  opg                                         
+================================================================================
+                   coef    std err          z      P&gt;|z|      [0.025      0.975]
+--------------------------------------------------------------------------------
+sigma2.level  4.418e-05   4.31e-06     10.241      0.000    3.57e-05    5.26e-05
+===================================================================================
+Ljung-Box (Q):                      117.00   Jarque-Bera (JB):                 6.26
+Prob(Q):                              0.00   Prob(JB):                         0.04
+Heteroskedasticity (H):               0.34   Skew:                             0.45
+Prob(H) (two-sided):                  0.00   Kurtosis:                         3.44
+===================================================================================
+
+Warnings:
+[1] Covariance matrix calculated using the outer product of gradients (complex-step).
+&#34;&#34;&#34;</code></pre></div>
+<p>まず、残差に自己相関が残っており、分布も正規分布でないことがすぐにわかる。また、AIC()を比較すると</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="color:#66d9ef">print</span>(<span style="color:#e6db74">&#34;LocalLinearTrend: {:.6}&#34;</span><span style="color:#f92672">.</span>format(result<span style="color:#f92672">.</span>aic))
+<span style="color:#66d9ef">print</span>(<span style="color:#e6db74">&#34;RandomWalk: {:.6}&#34;</span><span style="color:#f92672">.</span>format(res_rwalk<span style="color:#f92672">.</span>aic))</code></pre></div><div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-text" data-lang="text">LocalLinearTrend: -1083.73
+RandomWalk: -1069.02</code></pre></div>
+<p>となり、ローカル線形トレンドモデルのほうが低い。すなわち、少なくともランダムウォークよりはローカル線形トレンドモデルのほうがよいモデルであるとわかる。</p>
+</article>
+ 
+      
+
+      <footer class="book-footer">
+        
+  <div class="flex flex-wrap justify-between">
+
+
+
+
+
+</div>
+
+ 
+        
+      </footer>
+
+      
+  
+  <div class="book-comments">
+
+</div>
+  
+ 
+
+      <label for="menu-control" class="hidden book-menu-overlay"></label>
+    </div>
+
+    
+    <aside class="book-toc">
+      
+  <nav id="TableOfContents">
+<ul>
+<li>
+<ul>
+<li><a href="#statsmodels-での線形ガウス状態空間モデルの式">statsmodels での線形ガウス状態空間モデルの式</a></li>
+<li><a href="#ローカル線形トレンドモデルの実装">ローカル線形トレンドモデルの実装</a>
+<ul>
+<li><a href="#モデリングフレームワーク">モデリングフレームワーク</a>
+<ul>
+<li><a href="#init"><code>__init__()</code></a></li>
+<li><a href="#update--params"><code>update(params)</code></a></li>
+<li><a href="#transform-untransform">transform/untransform</a></li>
+<li><a href="#まとめ">まとめ</a></li>
+</ul></li>
+</ul></li>
+<li><a href="#サンプルデータ分析">サンプルデータ分析</a>
+<ul>
+<li><a href="#予測">予測</a></li>
+<li><a href="#ナイーブ予測との比較">ナイーブ予測との比較</a></li>
+</ul></li>
+</ul></li>
+</ul>
+</nav>
+
+ 
+    </aside>
+    
+  </main>
+
+  
+</body>
+
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
