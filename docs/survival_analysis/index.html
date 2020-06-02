@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="en" dir=>
+
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="生存時間解析とは なんらかの期間の長さを解析する統計分野のこと。「生存時間」という名前がついていることから、伝統的には医学や保険数学の分野で人間が死ぬまでの時間の長さを統計的に調べるための分野であった。
+しかし、その応用範囲は単に死亡までの時間の長さだけではなく、何らかの期間の長さとみなしうるもの全てに適用できる。
+例えば、以下のような期間が生存時間解析によって調べられる。
+ ある特徴の人々が死ぬまでの期間 薬の投与から治癒までの期間。 ユーザーがウェブ会員に登録してから登録を解除するまでの期間 新しい機械を稼動させてからそれが壊れるまでの期間 週刊少年ジャンプでの漫画の連載期間  生存時間解析の基本 生存時間解析に特有の基本的な考え方がいくつかある。以下、それらを解説していく。
+打切り (Censoring) 話を想像しやすいように、マウスに薬を投与してから死ぬまでの長さを調べていると考えよう。実験の常として、観察期間は限られている。従って、全てのマウスが死ぬまで実験を続けることはできない。実験終了時点で生き残っているマウスがいたとしても、実験に参加したマウス全体の寿命について、なんらかの結論を出さなければならない。
+実験観測をおこなった期間中に死亡を観測できなかったサンプルのことを、生存時間解析では 右打切り(right-censored) という。
+生存時間解析において、右打切りサンプルを無視すると、誤った結論を導いてしまうことになる。ちょっとした思考実験により、そのことを明らかにしてみよう。
+いま、あるサンプルの寿命を調べているとする。現在は調べはじめて 5 年で、そろそろ観察をやめにして結論を出したい。
+  青色が右打切りサンプルで、赤色は期間内に死亡が観測できたサンプルである。
+もしもこのサンプルで右打切りを無視して、赤色の期間を単に平均することによって平均寿命を算出しようとすれば、本来の寿命よりもかなり短い結果を導いてしまう。また、仮に、青色の右打切りサンプルを全て寿命 5 年として、先程の計算に加えて平均寿命を出そうとしても、それでもまだ本来の寿命より短い推定結果となる。そのような推定はどうかんばっても実験期間の 5 年より長くなることはない。
+実は、この観察を全部のサンプルが死ぬまで続けられたとしたら、
+  となる。
+実際、この疑似データは、平均寿命 8 年として指数分布から作成した。
+生存関数 生存時間を確率論の中で捉えるために、サンプルの寿命を確率変数として考えよう。
+\(T\) を生存時間を表す確率変数とする。 \(T\) は少なくとも \(T \ge 0\) である。
+このとき、例えば、寿命が 5 年以上である確率は、確率論の言葉で
+\[ \mathrm{P}(T \ge 5) \]
+と書き表す。
+さて、これを一般化して、 正の実数 \(t\) に対して、 \(T\) が \(t\) を超える確率を与える関数 \(S\) を考える。
+\[ S(t) = \mathrm{P}(T &gt; t) \]">
+<meta name="theme-color" content="#FFFFFF"><meta property="og:title" content="生存時間解析" />
+<meta property="og:description" content="" />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="http://hanakno863.github.io/learn-docs/docs/survival_analysis/" />
+
+<title>生存時間解析 | Learn Docs</title>
+<link rel="manifest" href="/learn-docs/manifest.json">
+<link rel="icon" href="/learn-docs/favicon.png" type="image/x-icon">
+<link rel="stylesheet" href="/learn-docs/book.min.e161f1fe2b283b6a43c29a52fde96e2387fade573e78efa6701d44c8499da76b.css" integrity="sha256-4WHx/isoO2pDwppS/eluI4f63lc&#43;eO&#43;mcB1EyEmdp2s=">
+<script defer src="/learn-docs/en.search.min.f83f5a88451a43e059cbd2de076f30976aa2df240e0e518124729f2c9029ebf9.js" integrity="sha256-&#43;D9aiEUaQ&#43;BZy9LeB28wl2qi3yQODlGBJHKfLJAp6/k="></script>
+<link rel="alternate" type="application/rss+xml" href="http://hanakno863.github.io/learn-docs/docs/survival_analysis/index.xml" title="Learn Docs" />
+<!--
+Made with Book Theme
+https://github.com/alex-shpak/hugo-book
+-->
+
+  <script type="text/javascript" async
+  src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+  MathJax.Hub.Config({
+  tex2jax: {
+    inlineMath: [['$','$'], ['\\(','\\)']],
+    displayMath: [['$$','$$'], ['\\[', '\\]']],
+    processEscapes: true,
+    processEnvironments: true,
+    skipTags: ['script', 'noscript', 'style', 'textarea', 'pre'],
+    TeX: { equationNumbers: { autoNumber: "AMS" },
+           extensions: ["AMSmath.js", "AMSsymbols.js"],
+    }
+  }
+  });
+  MathJax.Hub.Queue(function() {
+    
+    
+    
+    var all = MathJax.Hub.getAllJax(), i;
+    for(i = 0; i < all.length; i += 1) {
+        all[i].SourceElement().parentNode.className += ' has-jax';
+    }
+  });
+
+  MathJax.Hub.Config({
+  
+      TeX: {
+          Macros: { bm: ["\\boldsymbol{#1}", 1] }
+      }
+  });
+</script>
+
+<link rel="stylesheet" href="http://hanakno863.github.io/learn-docscss/syntax.css" />
+
+</head>
+
+<body dir=>
+  <input type="checkbox" class="hidden" id="menu-control" />
+  <main class="container flex">
+    <aside class="book-menu">
+      
+  <nav>
+<h2 class="book-brand">
+  <a href="/learn-docs"><span>Learn Docs</span>
+  </a>
+</h2>
+
+
+<div class="book-search">
+  <input type="text" id="book-search-input" placeholder="Search" aria-label="Search" maxlength="64" data-hotkeys="s/" />
+  <div class="book-search-spinner hidden"></div>
+  <ul id="book-search-results"></ul>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+  <ul>
+<li><a href="/learn-docs/docs/survival_analysis/"class=active> <strong>生存時間解析</strong> </a></li>
+<li><a href="/learn-docs/docs/%E6%99%82%E7%B3%BB%E5%88%97%E5%88%86%E6%9E%90/"> <strong>時系列分析</strong> </a>
+
+<ul>
+<li><a href="/learn-docs/docs/%E6%99%82%E7%B3%BB%E5%88%97%E5%88%86%E6%9E%90/state-space-model/">状態空間モデル</a></li>
+<li><a href="/learn-docs/docs/%E6%99%82%E7%B3%BB%E5%88%97%E5%88%86%E6%9E%90/state-space-python/">状態空間モデルの実装例</a></li>
+</ul></li>
+</ul>
+
+
+
+
+
+
+  
+<ul>
+  
+  <li>
+    <a href="https://github.com/hnakano863/learn-docs" target="_blank" rel="noopener">
+        Github
+      </a>
+  </li>
+  
+</ul>
+
+
+
+
+
+
+</nav>
+
+
+
+
+  <script>(function(){var menu=document.querySelector("aside.book-menu nav");addEventListener("beforeunload",function(event){localStorage.setItem("menu.scrollTop",menu.scrollTop);});menu.scrollTop=localStorage.getItem("menu.scrollTop");})();</script>
+
+
+ 
+    </aside>
+
+    <div class="book-page">
+      <header class="book-header">
+        
+  <div class="flex align-center justify-between">
+  <label for="menu-control">
+    <img src="/learn-docs/svg/menu.svg" class="book-icon" alt="Menu" />
+  </label>
+
+  <strong>生存時間解析</strong>
+
+  <label for="toc-control">
+    
+    <img src="/learn-docs/svg/toc.svg" class="book-icon" alt="Table of Contents" />
+    
+  </label>
+</div>
+
+
+  
+    <input type="checkbox" class="hidden" id="toc-control" />
+    <aside class="hidden clearfix">
+      
+  <nav id="TableOfContents">
+<ul>
+<li>
+<ul>
+<li><a href="#生存時間解析とは">生存時間解析とは</a></li>
+<li><a href="#生存時間解析の基本">生存時間解析の基本</a>
+<ul>
+<li><a href="#打切り--censoring">打切り (Censoring)</a></li>
+<li><a href="#生存関数">生存関数</a>
+<ul>
+<li><a href="#生存関数の性質">生存関数の性質</a></li>
+</ul></li>
+<li><a href="#ハザード関数">ハザード関数</a>
+<ul>
+<li><a href="#累積ハザード関数">累積ハザード関数</a></li>
+<li><a href="#生存関数とハザード関数の関係">生存関数とハザード関数の関係</a></li>
+</ul></li>
+</ul></li>
+<li><a href="#生存時間解析の関数変換マンダラ">生存時間解析の関数変換マンダラ</a></li>
+</ul></li>
+</ul>
+</nav>
+
+
+    </aside>
+  
+ 
+      </header>
+
+      
+      
+  <article class="markdown">
+
+<h2 id="生存時間解析とは">生存時間解析とは</h2>
+
+<p>なんらかの期間の長さを解析する統計分野のこと。「生存時間」という名前がついていることから、伝統的には医学や保険数学の分野で人間が死ぬまでの時間の長さを統計的に調べるための分野であった。</p>
+
+<p>しかし、その応用範囲は単に死亡までの時間の長さだけではなく、何らかの期間の長さとみなしうるもの全てに適用できる。</p>
+
+<p>例えば、以下のような期間が生存時間解析によって調べられる。</p>
+
+<ul>
+<li>ある特徴の人々が死ぬまでの期間</li>
+<li>薬の投与から治癒までの期間。</li>
+<li>ユーザーがウェブ会員に登録してから登録を解除するまでの期間</li>
+<li>新しい機械を稼動させてからそれが壊れるまでの期間</li>
+<li>週刊少年ジャンプでの漫画の連載期間</li>
+</ul>
+
+<h2 id="生存時間解析の基本">生存時間解析の基本</h2>
+
+<p>生存時間解析に特有の基本的な考え方がいくつかある。以下、それらを解説していく。</p>
+
+<h3 id="打切り--censoring">打切り (Censoring)</h3>
+
+<p>話を想像しやすいように、マウスに薬を投与してから死ぬまでの長さを調べていると考えよう。実験の常として、観察期間は限られている。従って、全てのマウスが死ぬまで実験を続けることはできない。実験終了時点で生き残っているマウスがいたとしても、実験に参加したマウス全体の寿命について、なんらかの結論を出さなければならない。</p>
+
+<p>実験観測をおこなった期間中に死亡を観測できなかったサンプルのことを、生存時間解析では <strong>右打切り(right-censored)</strong> という。</p>
+
+<p>生存時間解析において、右打切りサンプルを無視すると、誤った結論を導いてしまうことになる。ちょっとした思考実験により、そのことを明らかにしてみよう。</p>
+
+<p>いま、あるサンプルの寿命を調べているとする。現在は調べはじめて 5 年で、そろそろ観察をやめにして結論を出したい。</p>
+
+<figure>
+    <img src="/learn-docs/ox-hugo/b1972fb1a4107030955351fb48835a0eed5b5597.png"/> 
+</figure>
+
+
+<p>青色が右打切りサンプルで、赤色は期間内に死亡が観測できたサンプルである。</p>
+
+<p>もしもこのサンプルで右打切りを無視して、赤色の期間を単に平均することによって平均寿命を算出しようとすれば、本来の寿命よりもかなり短い結果を導いてしまう。また、仮に、青色の右打切りサンプルを全て寿命 5 年として、先程の計算に加えて平均寿命を出そうとしても、それでもまだ本来の寿命より短い推定結果となる。そのような推定はどうかんばっても実験期間の 5 年より長くなることはない。</p>
+
+<p>実は、この観察を全部のサンプルが死ぬまで続けられたとしたら、</p>
+
+<figure>
+    <img src="/learn-docs/ox-hugo/4b0f699e62060b7efea43446b0f59baa21f9e9d2.png"/> 
+</figure>
+
+
+<p>となる。</p>
+
+<p>実際、この疑似データは、平均寿命 8 年として指数分布から作成した。</p>
+
+<h3 id="生存関数">生存関数</h3>
+
+<p>生存時間を確率論の中で捉えるために、サンプルの寿命を確率変数として考えよう。</p>
+
+<p>\(T\) を生存時間を表す確率変数とする。 \(T\) は少なくとも \(T \ge 0\) である。</p>
+
+<p>このとき、例えば、寿命が 5 年以上である確率は、確率論の言葉で</p>
+
+<p>\[ \mathrm{P}(T \ge 5) \]</p>
+
+<p>と書き表す。</p>
+
+<p>さて、これを一般化して、 正の実数 \(t\) に対して、 \(T\) が \(t\) を超える確率を与える関数 \(S\) を考える。</p>
+
+<p>\[ S(t) = \mathrm{P}(T &gt; t) \]</p>
+
+<p>この関数 \(S\) を、 <strong>生存関数</strong> という。</p>
+
+<h4 id="生存関数の性質">生存関数の性質</h4>
+
+<p>まず、 \(S(t)\) は確率であるから、</p>
+
+<p>\[ 0 \le S(t) \le 1 \]</p>
+
+<p>次に、 \(t\) が大きくなればなるほど、 \(S(t)\) は小さくなると考えられるので、 \(S(t)\) は単調減少関数である。</p>
+
+<p>最後に、 \(S(t)\) と 累積分布関数 \(F_{T}(t)\) との関係を考えたい。</p>
+
+<p>まず、 累積分布関数(Cumulative Distribution Function CDF)とは、寿命 \(T\) が \(t\) 以下となる確率を与える関数のことである。</p>
+
+<p>\[ F_T(t) = \mathrm{P}(T \le t) \]</p>
+
+<p>従って、生存関数 \(S(t)\) と累積分布関数 \(F_{T}(t)\) の間では、</p>
+
+<p>\[ F_T(t) = 1 - S(t) \]</p>
+
+<p>が成り立つ。</p>
+
+<p>ちなみに、、累積分布関数 \(F_T(t\) を \(t\) について微分したものを確率密度関数(Probability Density Function PDF)といい、 \(f_T(t)\) で表す。</p>
+
+<p>\[ f(t) = \frac{\mathrm{d}F_T}{\mathrm{d}t} \]</p>
+
+<h3 id="ハザード関数">ハザード関数</h3>
+
+<p>いま、目の前に生きているマウスがいるとしよう。このマウスが、いまこの瞬間に死亡する確率はどのように表せるだろうか。</p>
+
+<p>現在の時刻を \(t\) とおくと、このマウスは時刻 \(t\) までは生存している。すなわち、考えようとしている確率は、 \(T &gt; t\) という条件のもとの条件つき確率である。また、いまこの瞬間に死ぬというのは、限りなく小さい \(\delta t\) に対して、 \(T\) が \(t\) と \(t+\delta t\) の間にあるということである。総合すると、求める確率は、</p>
+
+<p>\[ \lim_{\delta t \to 0} \mathrm{P}(t \le T \le t + \delta t | T &gt; t) \]</p>
+
+<p>と表せる。この確率は 0 に収束する。そこで、これを \(\delta t\) で割った値を考える。 これを、時刻 \(t\) における <strong>ハザード率</strong> といい、 \(h(t)\) であらわす。</p>
+
+<p>\[ h(t) = \lim_{\delta t \to 0}\cfrac{ \mathrm{P}(t \le T \le t + \delta t | T &gt; t) }{\delta t} \]</p>
+
+<h4 id="累積ハザード関数">累積ハザード関数</h4>
+
+<p>ハザード関数 \(h(t)\) を t について積分したものを <strong>累積ハザード関数</strong> といい、 \(H(t)\) で表す。</p>
+
+<p>\[ H(t) = \int_{0}^{t} h(u)\mathrm{d}u \]</p>
+
+<h4 id="生存関数とハザード関数の関係">生存関数とハザード関数の関係</h4>
+
+<p>ハザード関数の定義式を変形していく。</p>
+
+<p>まず、条件つき確率の定義から、</p>
+
+<p>\[ \mathrm{P}(t \le T \le t + \delta t | T &gt; t) = \frac{\mathrm{P}(t &lt; T \le t + \delta t)}{\mathrm{P}(T &gt; t)} \]</p>
+
+<p>分母について見ると、</p>
+
+<p>\[ \mathrm{P}(t &lt; T \le t + \delta t) = \mathrm{P}(T &gt; t) - \mathrm{P}(T &gt; t + \delta t) \]</p>
+
+<p>生存関数 \(S(t)\) の定義より、 \(\mathrm{P}(T&gt; t) = S(t)\) だから、</p>
+
+<p>\[ \mathrm{P}(t \le T \le t + \delta t | T &gt; t) = \frac{S(t) - S(t + \delta t)}{S(t)} \]</p>
+
+<p>従って、微分の定義より、</p>
+
+<p>\[ h(t) = -\frac{S&rsquo;(t)}{S(t)} \]</p>
+
+<p>両辺を \(0\) から \(t\) まで積分すると、</p>
+
+<p>\[ H(t) = -\log{S(t)} \]</p>
+
+<p>故に、</p>
+
+<p>\[ S(t) = \exp{(-H(t))} \]</p>
+
+<p>従って、生存関数、ハザード関数、累積ハザード関数とは互いに変換可能である。</p>
+
+<h2 id="生存時間解析の関数変換マンダラ">生存時間解析の関数変換マンダラ</h2>
+
+<p>これまで出て来た関数を整理しよう。</p>
+
+<p>寿命を表す確率変数を \(T\) とおくとき、</p>
+
+<table>
+<thead>
+<tr>
+<th>関数名</th>
+<th>記号</th>
+<th>定義</th>
+</tr>
+</thead>
+
+<tbody>
+<tr>
+<td>生存関数</td>
+<td>\(S(t)\)</td>
+<td>\(\mathrm{P}(T&gt;t)\)</td>
+</tr>
+
+<tr>
+<td>累積分布関数</td>
+<td>\(F_T(t)\)</td>
+<td>\(\mathrm(T \le t)\)</td>
+</tr>
+
+<tr>
+<td>確率密度関数</td>
+<td>\(f_T(t)\)</td>
+<td>\(F&rsquo;_T(t)\)</td>
+</tr>
+
+<tr>
+<td>ハザード関数</td>
+<td>\(h(t)\)</td>
+<td>\(-S&rsquo;(t)/S(t)\)</td>
+</tr>
+
+<tr>
+<td>累積ハザード関数</td>
+<td>\(H(t)\)</td>
+<td>\(\int_0^th(u)\mathrm{d}u\)</td>
+</tr>
+</tbody>
+</table>
+
+<p>python の生存時間解析のライブラリ <code>lifelines</code> にこれらの関係を図示したものが載っている。
+<a href="https://lifelines.readthedocs.io/en/latest/Survival%20Analysis%20intro.html#hazard-function">https://lifelines.readthedocs.io/en/latest/Survival%20Analysis%20intro.html#hazard-function</a></p>
+</article>
+ 
+      
+
+      <footer class="book-footer">
+        
+  <div class="flex flex-wrap justify-between">
+
+
+
+
+
+</div>
+
+ 
+        
+      </footer>
+
+      
+  
+  <div class="book-comments">
+
+</div>
+  
+ 
+
+      <label for="menu-control" class="hidden book-menu-overlay"></label>
+    </div>
+
+    
+    <aside class="book-toc">
+      
+  <nav id="TableOfContents">
+<ul>
+<li>
+<ul>
+<li><a href="#生存時間解析とは">生存時間解析とは</a></li>
+<li><a href="#生存時間解析の基本">生存時間解析の基本</a>
+<ul>
+<li><a href="#打切り--censoring">打切り (Censoring)</a></li>
+<li><a href="#生存関数">生存関数</a>
+<ul>
+<li><a href="#生存関数の性質">生存関数の性質</a></li>
+</ul></li>
+<li><a href="#ハザード関数">ハザード関数</a>
+<ul>
+<li><a href="#累積ハザード関数">累積ハザード関数</a></li>
+<li><a href="#生存関数とハザード関数の関係">生存関数とハザード関数の関係</a></li>
+</ul></li>
+</ul></li>
+<li><a href="#生存時間解析の関数変換マンダラ">生存時間解析の関数変換マンダラ</a></li>
+</ul></li>
+</ul>
+</nav>
+
+ 
+    </aside>
+    
+  </main>
+
+  
+</body>
+
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
