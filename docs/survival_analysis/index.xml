@@ -10,5 +10,16 @@
 	<atom:link href="http://hanakno863.github.io/learn-docs/docs/survival_analysis/index.xml" rel="self" type="application/rss+xml" />
     
     
+    <item>
+      <title>Kaplan-Meier Method</title>
+      <link>http://hanakno863.github.io/learn-docs/docs/survival_analysis/kaplan-meier/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>http://hanakno863.github.io/learn-docs/docs/survival_analysis/kaplan-meier/</guid>
+      <description>カプランマイヤー法 カプランマイヤー法は、生存関数を実データから推測するためのノンパラメトリックな手法のひとつ。生存時間解析では最も基本的な手法である。
+本稿では、カプランマイヤー法の説明のために、以下のデータセットを用いる。
+start group z stop id event 0 0 1.0 0 3.0 1 True 1 0 1.0 0 5.0 2 False 2 0 1.0 1 5.0 3 True 3 0 1.0 0 6.0 4 True 4 0 1.0 0 6.0 5 False 5 6 1.0 1 8.0 5 False 6 0 0.0 1 4.0 6 False 7 0 0.0 0 5.0 7 False 8 5 0.0 1 7.</description>
+    </item>
+    
   </channel>
 </rss>
