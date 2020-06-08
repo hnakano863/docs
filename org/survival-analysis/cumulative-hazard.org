@@ -1,0 +1,430 @@
+#+TITLE: 累積ハザード関数
+#+hugo_base_dir: ../../
+#+hugo_section: /docs/survival_analysis/
+#+options: \n:t
+* 累積ハザード関数の重要性
+カプランマイヤー法は生存関数の推定を行う方法であった。
+
+ここで、生存関数 \(S(t)\) と累積ハザード関数 \(H(t)\) の関係をもう一度思い出してみよう。
+
+\[ \begin{align} H(t) &= -\log{S(t)} \\
+S(t) &= \exp{(-S(t))} \\ \end{align} \]
+
+すなわち、 \(S(t)\) と \(H(t)\) は相互に変換可能である。
+
+また、これに加えて、累積ハザード関数 \(H(t)\) を微分すれば、ハザード関数 \(h(t)\) を得ることができる。
+
+\[ h(t) = \frac{\mathrm{d}}{\mathrm{d}t}H(t) \]
+
+ハザード関数 \(h(t)\) は時刻がちょうど \(t\) のときに寿命を迎える確率に結びついている。
+
+\[ h(t) = \lim_{\delta t \to 0}\frac{\mathrm{P(t \le T \le t + \delta t|T > t)}}{\delta t} \]
+
+しかしながら、ハザード関数を直接推定することは難しい。
+
+累積ハザード関数を推定すれば、そこから生存関数やハザード関数を得ることができる。従って、生存時間解析において、累積ハザード関数を推定することは重要なステップとなる。
+
+累積ハザード関数をデータから推定するためのノンパラメトリックな手法が、 *Nelson-Aalen 法* である。
+* Nelson-Aalen 法
+以下、Nelson-Aalen 法による累積ハザード関数の推定法について説明する。
+説明にはカプランマイヤー法のときと同じく [[http://www.math.ucsd.edu/~rxu/math284/slect7.pdf][カリフォルニア大学サンディエゴ校の例示用データセット]] を用いる。
+
+#+begin_src jupyter-python :session py :kernel py-project :async yes :display text :exports results
+from lifelines.datasets import load_dfcv
+df = load_dfcv()
+df
+#+end_src
+
+#+RESULTS:
+#+begin_example
+    start  group  z  stop  id  event
+0       0    1.0  0   3.0   1   True
+1       0    1.0  0   5.0   2  False
+2       0    1.0  1   5.0   3   True
+3       0    1.0  0   6.0   4   True
+4       0    1.0  0   6.0   5  False
+5       6    1.0  1   8.0   5  False
+6       0    0.0  1   4.0   6  False
+7       0    0.0  0   5.0   7  False
+8       5    0.0  1   7.0   7   True
+9       0    0.0  0   8.0   8  False
+10      0    0.0  0   5.0   9  False
+11      5    0.0  1   9.0   9   True
+12      0    0.0  0   3.0  10  False
+13      3    0.0  1  10.0  10   True
+#+end_example
+
+#+begin_src jupyter-python :session py :kernel py-project :async yes :file :exports results
+from lifelines.plotting import plot_lifetimes
+import matplotlib.pyplot as plt
+
+df['duration'] = df['stop'] - df['start']
+plot_lifetimes(
+    df['duration'],
+    event_observed=df['event'],
+    entry=df['start'],
+    sort_by_duration=False
+)
+plt.show()
+
+#+end_src
+
+#+RESULTS:
+[[file:./.ob-jupyter/90efd0b6b911a9c4727bd7c5049ab69971ae1221.png]]
+
+まずは、カプランマイヤー法のときと同様に、生命表を作成する。
+#+begin_src jupyter-python :session py :kernel py-project :async yes :display text :exports results
+from lifelines.utils import survival_table_from_events
+
+s_tbl = survival_table_from_events(
+    death_times=df['duration'],
+    event_observed=df['event'],
+)
+s_tbl
+#+end_src
+
+#+RESULTS:
+:           removed  observed  censored  entrance  at_risk
+: event_at
+: 0.0             0         0         0        14       14
+: 2.0             2         1         1         0       14
+: 3.0             2         1         1         0       12
+: 4.0             2         1         1         0       10
+: 5.0             4         1         3         0        8
+: 6.0             2         1         1         0        4
+: 7.0             1         1         0         0        2
+: 8.0             1         0         1         0        1
+
+次に、期別死亡率を計算する。
+
+#+begin_src jupyter-python :session py :kernel py-project :display text :async yes :exports results
+s_tbl['death_rate'] = s_tbl['observed'] / s_tbl['at_risk']
+s_tbl
+#+end_src
+
+#+RESULTS:
+:           removed  observed  censored  entrance  at_risk  death_rate
+: event_at
+: 0.0             0         0         0        14       14    0.000000
+: 2.0             2         1         1         0       14    0.071429
+: 3.0             2         1         1         0       12    0.083333
+: 4.0             2         1         1         0       10    0.100000
+: 5.0             4         1         3         0        8    0.125000
+: 6.0             2         1         1         0        4    0.250000
+: 7.0             1         1         0         0        2    0.500000
+: 8.0             1         0         1         0        1    0.000000
+
+最後に、期別死亡率の累積和を求める。
+この累積和こそが Nelson-Aalen 法による累積ハザード関数の推定量である。
+
+#+begin_src jupyter-python :session py :kernel py-project :async yes :display text :exports results
+import numpy as np
+s_tbl['cumulative_hazard'] = np.cumsum(s_tbl['death_rate'])
+s_tbl
+#+end_src
+
+#+RESULTS:
+#+begin_example
+          removed  observed  censored  entrance  at_risk  death_rate  \
+event_at
+0.0             0         0         0        14       14    0.000000
+2.0             2         1         1         0       14    0.071429
+3.0             2         1         1         0       12    0.083333
+4.0             2         1         1         0       10    0.100000
+5.0             4         1         3         0        8    0.125000
+6.0             2         1         1         0        4    0.250000
+7.0             1         1         0         0        2    0.500000
+8.0             1         0         1         0        1    0.000000
+
+          cumulative_hazard
+event_at
+0.0                0.000000
+2.0                0.071429
+3.0                0.154762
+4.0                0.254762
+5.0                0.379762
+6.0                0.629762
+7.0                1.129762
+8.0                1.129762
+#+end_example
+
+推定した累積ハザード関数をグラフに表すと、以下のようになる。
+
+#+begin_src jupyter-python :session py :kernel py-project :async yes :file :exports results
+from lifelines import NelsonAalenFitter
+
+naf = NelsonAalenFitter()
+naf.fit(df['duration'], event_observed=df['event'])
+naf.plot(label='cumulative_hazard', ci_show=False)
+plt.show()
+#+end_src
+
+#+RESULTS:
+[[file:./.ob-jupyter/2aadd1e3cc9086525d1099f771e3b2e59b59b268.png]]
+
+** Python による実装
+Python のライブラリ ~lifelines~ を使って、 Nelson-Aalen 法を実現する。
+カプランマイヤー法と同じように実装できる。
+
+#+begin_src jupyter-python :session py :kernel py-project :async yes :file :exports both
+from lifelines import NelsonAalenFitter
+from lifelines.datasets import load_dfcv
+import matplotlib.pyplot as plt
+
+# データを読み込んでduration列を作成
+df = load_dfcv().eval('duration = stop - start')
+# fitterインスタンスを作成
+naf = NelsonAalenFitter()
+# フィット
+naf.fit(df['duration'], event_observed=df['event'])
+# プロット
+naf.plot(label='cumulative_hazard')
+# 凡例の位置調整
+plt.legend(bbox_to_anchor=(0,1), loc="upper left")
+# グリッドを追加
+plt.grid(True, ls="--", axis="y")
+plt.show()
+#+end_src
+
+#+RESULTS:
+[[file:./.ob-jupyter/6b17e90843fde1d5406feade9928b4c1263ffb21.png]]
+* 累積ハザード関数の使い方
+まず、先のセクションで推定した累積ハザード関数の縦軸の値に注目すると、その値が 1 を超えていることがわかる。
+すなわち、生存関数 \(S(t)\) やハザード関数 \(h(t)\) とは異なり、累積ハザード関数 \(H(t)\) は確率を与える関数 *ではない*
+
+従って、少くとも今の段階では、累積ハザード関数を見て何かを解釈することは難しい。
+むしろ、累積ハザード関数の価値は、そこからハザード関数 \(h(t)\) と生存関数 \(S(t)\) が得られるところにある。
+** 累積ハザード関数からハザード関数を得る
+何度か述べたように、累積ハザード関数 \(H(t)\) を微分するとハザード関数 \(h(t)\) が得られる。
+
+\[ h(t) = \frac{\mathrm{d}}{\mathrm{d}t}H(t) \]
+
+この関係を利用して、Nelson-Aalen 法による推定量から、ハザード関数を推定してみよう。
+
+実際には正確な微分ができるわけではないから、カーネル平滑化を行う。
+カーネル平滑化については本稿の主旨からずれるので解説しない。
+現段階では、「なんとなくデコボコを滑かにするんだな」と思っておくとよい。
+
+#+begin_src jupyter-python :session py :kernel py-project :async yes :file :exports both
+# 先程作成したfitterインスタンスを使い回す。
+# カーネル平滑化のためには、 `bandwidth` を指定する必要がある。
+
+bandwidth = 3
+# ハザード関数のプロット
+naf.plot_hazard(bandwidth=bandwidth, label='hazard_function')
+# 凡例の位置調整
+plt.legend(bbox_to_anchor=(0,1), loc="upper left")
+plt.show()
+#+end_src
+
+#+RESULTS:
+[[file:./.ob-jupyter/5d9b6092beab5cd64edf328399f8694b2aacc10c.png]]
+
+ハザード関数 \(h(t)\) は丁度 \(t\) 年で寿命を迎える条件つき確率の確率密度を表しているといえる。
+このグラフをみると、5年目くらいから死にやすくなっていることが分かる。
+
+** ハザード関数の解釈
+ハザード関数の解釈に慣れるために、少し別のデータセットを用いて Nelson-Aalen 法を試してみよう。
+
+今回使うデータセットは、 ~lifelines~ に同梱のデータセットで、各国のリーダーの在職期間を記録したものである。
+
+#+begin_src jupyter-python :session py :kernel py-project :async yes :display text :exports both
+from lifelines.datasets import load_dd
+
+print(load_dd.__doc__)
+#+end_src
+
+#+RESULTS:
+#+begin_example
+
+    Classification of political regimes as democracy and dictatorship.
+    Classification of democracies as parliamentary, semi-presidential (mixed) and presidential.
+    Classification of dictatorships as military, civilian and royal.
+    Coverage: 202 countries, from 1946 or year of independence to 2008.::
+
+        Size: (1808, 12)
+        Example:
+            ctryname                                                   Afghanistan
+            cowcode2                                                           700
+            politycode                                                         700
+            un_region_name                                           Southern Asia
+            un_continent_name                                                 Asia
+            ehead                                              Mohammad Zahir Shah
+            leaderspellreg       Mohammad Zahir Shah.Afghanistan.1946.1952.Mona...
+            democracy                                                Non-democracy
+            regime                                                        Monarchy
+            start_year                                                        1946
+            duration                                                             7
+            observed                                                             1
+
+    References
+    ----------
+    Cheibub, José Antonio, Jennifer Gandhi, and James Raymond Vreeland. 2010. “Democracy and Dictatorship Revisited.” Public Choice, vol. 143, no. 2-1, pp. 67-101.
+#+end_example
+
+#+begin_src jupyter-python :session py :kernel py-project :async yes :display text :exports both
+df = load_dd()
+# データシェマ
+print(df.info())
+print("="*80)
+# 頭5行
+print(df.head())
+print("="*80)
+# `democracy` 列の値を確認
+print(df['democracy'].unique())
+#+end_src
+
+#+RESULTS:
+#+begin_example
+<class 'pandas.core.frame.DataFrame'>
+RangeIndex: 1808 entries, 0 to 1807
+Data columns (total 12 columns):
+ #   Column             Non-Null Count  Dtype
+---  ------             --------------  -----
+ 0   ctryname           1808 non-null   object
+ 1   cowcode2           1808 non-null   int64
+ 2   politycode         1801 non-null   float64
+ 3   un_region_name     1808 non-null   object
+ 4   un_continent_name  1808 non-null   object
+ 5   ehead              1808 non-null   object
+ 6   leaderspellreg     1808 non-null   object
+ 7   democracy          1808 non-null   object
+ 8   regime             1808 non-null   object
+ 9   start_year         1808 non-null   int64
+ 10  duration           1808 non-null   int64
+ 11  observed           1808 non-null   int64
+dtypes: float64(1), int64(4), object(7)
+memory usage: 169.6+ KB
+None
+================================================================================
+      ctryname  cowcode2  politycode un_region_name un_continent_name  \
+0  Afghanistan       700       700.0  Southern Asia              Asia
+1  Afghanistan       700       700.0  Southern Asia              Asia
+2  Afghanistan       700       700.0  Southern Asia              Asia
+3  Afghanistan       700       700.0  Southern Asia              Asia
+4  Afghanistan       700       700.0  Southern Asia              Asia
+
+                   ehead                                     leaderspellreg  \
+0    Mohammad Zahir Shah  Mohammad Zahir Shah.Afghanistan.1946.1952.Mona...
+1  Sardar Mohammad Daoud  Sardar Mohammad Daoud.Afghanistan.1953.1962.Ci...
+2    Mohammad Zahir Shah  Mohammad Zahir Shah.Afghanistan.1963.1972.Mona...
+3  Sardar Mohammad Daoud  Sardar Mohammad Daoud.Afghanistan.1973.1977.Ci...
+4    Nur Mohammad Taraki  Nur Mohammad Taraki.Afghanistan.1978.1978.Civi...
+
+       democracy         regime  start_year  duration  observed
+0  Non-democracy       Monarchy        1946         7         1
+1  Non-democracy  Civilian Dict        1953        10         1
+2  Non-democracy       Monarchy        1963        10         1
+3  Non-democracy  Civilian Dict        1973         5         0
+4  Non-democracy  Civilian Dict        1978         1         0
+================================================================================
+['Non-democracy' 'Democracy']
+#+end_example
+
+~duration~ が在職年数で、 ~observed~ が調査期間中に退任したか否か。
+在職中に死亡した場合や調査終了時に在職だった場合は右打切りになる。
+~democracy~ はカテゴリカルな値で、民主的な政体か、独裁主義などの非民主的な政体かを表している。
+
+今回は、 ~democracy~ 列の値を利用してデータを分けて、政体ごとのハザード関数の差を見てみよう。
+
+#+begin_src jupyter-python :session py :kernel py-project :async yes :file :exports both
+df_democrat = df.query('democracy == "Democracy"')
+df_non_democrat = df.query('democracy == "Non-democracy"')
+
+# ハザード関数用のパラメタ
+bandwidth = 5
+
+fig, ax = plt.subplots()
+
+# 民主主義
+naf_democrat = NelsonAalenFitter()
+naf_democrat.fit(df_democrat['duration'], event_observed=df_democrat['observed'])
+naf_democrat.plot_hazard(bandwidth=bandwidth, label="Democracy", loc=slice(0, 22))
+# 非民主主義
+naf_non_democrat = NelsonAalenFitter()
+naf_non_democrat.fit(df_non_democrat['duration'], event_observed=df_non_democrat['observed'])
+naf_non_democrat.plot_hazard(bandwidth=bandwidth, label="Non-democracy", loc=slice(0,44))
+
+plt.show()
+#+end_src
+
+#+RESULTS:
+:RESULTS:
+: /home/hnakano/repos/learn-docs/.venv/lib/python3.8/site-packages/lifelines/fitters/nelson_aalen_fitter.py:237: RuntimeWarning: invalid value encountered in true_divide
+:   self.ci_labels[0]: hazard_ * np.exp(z * std_hazard_ / hazard_),
+: /home/hnakano/repos/learn-docs/.venv/lib/python3.8/site-packages/lifelines/fitters/nelson_aalen_fitter.py:238: RuntimeWarning: invalid value encountered in true_divide
+:   self.ci_labels[1]: hazard_ * np.exp(-z * std_hazard_ / hazard_),
+[[file:./.ob-jupyter/f5c19d6a80f2c912d681d1a8f7c1fbef9b6c4865.png]]
+:END:
+
+基本的に民主政権のほうが非民主政権よりもハザード関数の値が小さいことがわかる。すなわち、民主政権のほうがリーダーの交代が起こりやすいことを示している。
+
+また、民主政権のほうには在位 5 年目ほどと 12 年目ほどに 2 つ山があるのが見られる。おそらく、これは民主政権での任期満了時期にあたり、選挙に際して政権交代が起こりやすいことを示している。
+逆に、非民主政権は、最初の 4 年ほどは若干政権交代がおこりやすいが、そこをこえれば安定した長期政権になることが、ハザード関数の値の推移から推測できる。
+
+以上のように、ハザード関数はある時期のイベントの起りやすさ(=死にやすさ)を評価していると解釈してよい。
+
+** 累積ハザード関数から生存関数を得る
+累積ハザード関数 \(H(t)\) と生存関数 \(S(t)\) の間には、
+
+\[ S(t) =  \exp (-H(t)) \]
+
+という関係が成り立つ。従って、累積ハザード関数から生存関数を計算することができる。
+
+Nelson-Aalen 法によって推定した累積ハザード関数から、この関係式を使って生存関数を推定する方法を、 *Fleming-Harrington 法* という。
+
+~lifelines~ では、 ~BreslowFlemingHarringtonFitter~ というクラスが、Fleming-Harrington 法を実装している。
+
+再び、カリフォルニア大学サンディエゴ校の例示用データセットを用いて、カプランマイヤー法と比較してみよう。
+#+begin_src jupyter-python :session py :kernel py-project :async yes :file :exports both
+from lifelines import KaplanMeierFitter, BreslowFlemingHarringtonFitter
+from matplotlib.ticker import PercentFormatter
+
+df = load_dfcv().eval('duration = stop - start')
+
+fig, ax = plt.subplots(ncols=2, sharex=True, figsize=(13, 4.8))
+cmap = plt.get_cmap('tab10')
+
+for i, fitter in enumerate([KaplanMeierFitter(), BreslowFlemingHarringtonFitter()]):
+    fitter.fit(df['duration'], event_observed=df['event'])
+    # これはバグに対するパッチ
+    if not hasattr(fitter, "confidence_interval_survival_function_"):
+        fitter.confidence_interval_survival_function_ = fitter.confidence_interval_
+    fitter.plot(ax=ax[i], color=cmap(i))
+    # プロットの体裁を整える
+    ax[i].yaxis.set_major_formatter(PercentFormatter(xmax=1))
+    ax[i].yaxis.grid(True, ls="--")
+    ax[i].set_title(f"{fitter.__class__.__name__} Estimate")
+
+plt.show()
+#+end_src
+
+#+RESULTS:
+[[file:./.ob-jupyter/19f97f0a6226bd1cd4a5ee01451ba0d90f8b502a.png]]
+
+左右の違いを比べると殆ど変らないことがわかる。
+では、わざわざ Fleming-Harrington 法を使う理由はどこにあるのだろうか。
+
+実は、サンプルが少ない場合、Fleming-Harrington 法のほうが極端な値が出にくくなるというメリットがある。
+これは、カプランマイヤー法が累積積を用いるので異常な値の影響を受けやすいのに対し、Fleming-Harrington 法は累積和を用いるため異常値の影響を抑えられるからである。
+
+* この下は Export した後に追加で作成したもの。
+
+** ワイブル疑似データ
+#+begin_src jupyter-python :session py :kernel py-project :async yes :file
+from numpy.random import default_rng
+
+rg = default_rng()
+
+duration = rg.weibull(0.667, size=1000)
+
+naf.fit(duration, event_observed=np.ones(len(duration)))
+ax = naf.plot_hazard(bandwidth=3, label="hazard function", loc=slice(0, 15))
+ax.set_ylim(0, 1)
+ax.yaxis.set_major_formatter(PercentFormatter(xmax=1))
+plt.legend(bbox_to_anchor=(0,1), loc="upper left")
+plt.show()
+#+end_src
+
+#+RESULTS:
+[[file:./.ob-jupyter/7dd4d721f4ddf2aa62f0801b6c1af4c6e591de1a.png]]
