@@ -65,5 +65,26 @@ statsmodels での線形ガウス状態空間モデルの式 statsmodels での�
 \[\begin{align} \bm{\mu}_t &amp;amp;= T_t\bm{\mu}_{t-1} + R_t\bm{\eta}_t, &amp;amp; \bm{\eta}_t \sim \mathcal{N}(0, Q_t) \end{align}\]</description>
     </item>
     
+    <item>
+      <title>累積ハザード関数</title>
+      <link>http://hanakno863.github.io/learn-docs/docs/survival_analysis/cumulative-hazard/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>http://hanakno863.github.io/learn-docs/docs/survival_analysis/cumulative-hazard/</guid>
+      <description>累積ハザード関数の重要性 カプランマイヤー法は生存関数の推定を行う方法であった。
+ここで、生存関数 \(S(t)\) と累積ハザード関数 \(H(t)\) の関係をもう一度思い出してみよう。
+\[ \begin{align} H(t) &amp;amp;= -\log{S(t)} \\
+S(t) &amp;amp;= \exp{(-S(t))} \ \end{align} \]
+すなわち、 \(S(t)\) と \(H(t)\) は相互に変換可能である。
+また、これに加えて、累積ハザード関数 \(H(t)\) を微分すれば、ハザード関数 \(h(t)\) を得ることができる。
+\[ h(t) = \frac{\mathrm{d}}{\mathrm{d}t}H(t) \]
+ハザード関数 \(h(t)\) は時刻がちょうど \(t\) のときに寿命を迎える確率に結びついている。
+\[ h(t) = \lim_{\delta t \to 0}\frac{\mathrm{P(t \le T \le t + \delta t|T &amp;gt; t)}}{\delta t} \]
+しかしながら、ハザード関数をデータから直接推定することは難しい。
+累積ハザード関数を推定すれば、そこから生存関数やハザード関数を得ることができる。従って、生存時間解析において、累積ハザード関数を推定することは重要なステップとなる。
+累積ハザード関数をデータから推定するためのノンパラメトリックな手法が、 Nelson-Aalen 法 である。
+Nelson-Aalen 法 以下、Nelson-Aalen 法による累積ハザード関数の推定法について説明する。説明にはカプランマイヤー法のときと同じく カリフォルニア大学サンディエゴ校の例示用データセット を用いる。</description>
+    </item>
+    
   </channel>
 </rss>
