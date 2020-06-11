@@ -1,0 +1,391 @@
++++
+title = "時系列データの前処理"
+author = ["Hiroshi Nakano"]
+draft = false
++++
+
+本稿では、時系列データの分析を容易にするために、基礎的なデータ変換方法について述べる。  
+
+
+## 時系列データへの変換 {#時系列データへの変換}
+
+時系列データは、一定の時間間隔で取得されたデータのことだった。  
+そのため、日時や時刻を表す列があると分析の都合が良い。  
+
+基本的には、以下の流れで取得データを周期一定の時系列データに直す。  
+
+1.  日付を表す列データを日付型にキャストする
+2.  直した列をインデックスにする
+3.  日付インデックスのサンプリング周期が一定になるように、データをリサンプルする
+
+例示用のデータとして、 [RDatasets](https://vincentarelbundock.github.io/Rdatasets/) の `LakeHuron` を用いる。  
+このデータは、アメリカの五大湖のひとつであるヒューロン湖の、 1875 年から 1972 年までの水位を記録したものである。  
+
+```python
+import pandas as pd
+import statsmodels.api as sm
+
+# データのダウンロード
+lake_data = sm.datasets.get_rdataset('LakeHuron', 'datasets').data
+# 変換前のデータの頭 5 行を閲覧
+print(" Before Transformation ".center(80, '='))
+print(lake_data.head())
+# `time`列に年データが入っている
+time_idx = lake_data['time']
+
+# 1. 日付を表す列データを日付型に直す
+# `time`列は数値型なので、数値->整数->日付の順番でキャストする
+time_idx = pd.to_datetime(time_idx.astype(int), format='%Y')
+# 2. 直した列をインデックスにする
+# インデックスにセットし、不要な列をドロップ
+lake_data = lake_data.set_index(time_idx).drop('time', axis=1)
+# 3. 日付インデックスのサンプリング周期が一定になるように、データをリサンプルする
+lake_data = lake_data.resample('AS').asfreq()  # 1 年ごとにリサンプル
+# 変換後
+print(" After Transformation ".center(80, '='))
+print(lake_data.head())
+```
+
+```text
+============================ Before Transformation =============================
+   time   value
+0  1875  580.38
+1  1876  581.86
+2  1877  580.97
+3  1878  580.80
+4  1879  579.79
+============================= After Transformation =============================
+             value
+time              
+1875-01-01  580.38
+1876-01-01  581.86
+1877-01-01  580.97
+1878-01-01  580.80
+1879-01-01  579.79
+```
+
+このように `DataFrame` のインデックスを日付型に直しておくと、分析しやすくなるだけでなく、データのプロットにも便利になる。  
+
+```python
+import matplotlib.pyplot as plt
+import seaborn as sns
+# グラフのスタイルを変更
+sns.set(style='darkgrid')
+# DataFrame.plot()が使える
+lake_data.plot()
+plt.title('Annual Level of Lake Huron')
+plt.show()
+```
+
+{{< figure src="/learn-docs/ox-hugo/lake_huron.png" >}}  
+
+
+## 定常過程 {#定常過程}
+
+時系列データの分析を行う際に、最も分析しやすいデータは定常過程のデータである。  
+
+**定常過程** とは、以下の条件を満たすデータである。  
+
+1.  期待値が時点によらず一定
+2.  自己共分散が時点によらない(ラグによって変わるのは OK)
+
+自己共分散が時点によらないことから、定常過程では分散(=ラグ 0 のときの自己共分散)が時点によらず一定であることがわかる。  
+
+たとえば、ホワイトノイズは定常過程である。一方、ランダムウォークやトレンドのあるデータは定常過程ではない。  
+
+ちなみに、定常過程の 2 条件を数式で表現すると、以下のようになる  
+
+1.  \\( \mathrm{E}[y\_t] = \mu \\)
+2.  \\( \mathrm{Cov}[y\_t, y\_{t-k}] = \gamma\_k \\)
+
+定常過程ならば、データ生成過程の期待値や自己共分散をサンプルから推定することができる。  
+
+1.  期待値の推定量 = 標本平均  
+    \\[ \hat{\mu} = \frac{1}{N}\sum\_{t=1}^N y\_t \\]
+2.  自己共分散の推定量  
+    \\[ \hat{\gamma}\_k = \frac{1}{N}\sum\_{t=1}^N (y\_t-\hat{\mu})(y\_{t-k}-\hat{\mu}) \\]
+3.  自己相関の推定量  
+    \\[ \hat{\rho}\_k = \frac{\hat{\gamma}\_k}{\hat{\gamma}\_0} \\]
+
+ただし、\\(N\\) はサンプル数とする。  
+
+
+## 差分系列 {#差分系列}
+
+たとえ定常過程でないデータだったとしても、データを変換することで定常過程にすることができる場合がある。例えば、ランダムウォークは定常過程ではないが、一時点前との差分をとった系列はホワイトノイズなので定常過程となる。  
+
+{{< figure src="/learn-docs/ox-hugo/random-walk-diff.png" >}}  
+
+### 用語 {#用語}
+
+何の変換も施していない時系列データ(グラフ左)のことを **原系列** という。  
+原系列に対して、一時点前との差分をとった系列(グラフ右)のことを、 **1 階差分系列** という。  
+1 階差分系列のさらに差分をとった系列のことを 2 階差分系列という。  
+
+原系列の \\(n\\) 階差分系列が定常過程だった場合、原系列は \\(n\\) 次 **和分過程** という。  
+例えば、ランダムウォークは 1 階差分系列が定常過程なので、1次和分過程である。  
+とくに 1 次和分過程のことを **単位根過程** ということもある。  
+
+
+### 単位根検定 {#単位根検定}
+
+時系列データが単位根をもつ(=和分過程である)かどうかを調べるための検定を単位根検定という。  
+
+よく使われる検定は ADF(Augmented Dickey-Fuller)検定である。  
+帰無仮説と対立仮説は以下の通り。  
+
+| 帰無仮説 | 対立仮説 |
+|------|------|
+| 単位根あり | 単位根なし |
+
+例えば、ホワイトノイズ(=単位根なし)への検定結果は以下のとおり。  
+
+```python
+from statsmodels.tsa.stattools import adfuller
+
+rg = default_rng(123)
+# ホワイトノイズ作成
+wnoiz = rg.normal(0, 4, size=300)
+# 検定
+result = adfuller(wnoiz, regression='nc', autolag='AIC')
+
+def print_summary(result):
+    print(
+        """
+        Test Static: \t{0:.3}
+        p-value: \t{1:.3}
+        lag-used: \t{2}
+        """.format(*result)
+    )
+
+print_summary(result)
+```
+
+```text
+        Test Static: 	-16.7
+        p-value: 	2.48e-28
+        lag-used: 	0
+```
+
+`p-value` が 0.05 より十分に低いので、帰無仮説を棄却して、単位根なしといえる。  
+
+一方、ランダムウォーク系列で ADF 検定を行うと、  
+
+```python
+rwalk = np.cumsum(wnoiz)
+result = adfuller(rwalk)
+print_summary(result)
+```
+
+```text
+        Test Static: 	-2.05
+        p-value: 	0.264
+        lag-used: 	0
+```
+
+`p-value` が 0.05 より大きいので、帰無仮説を棄却することができない。  
+
+ADF 検定の他に、KPSS 検定という検定によっても単位根の有無を判定できる。  
+
+KPSS 検定の帰無仮説と対立仮説は以下の通り。  
+
+| 帰無仮説 | 対立仮説 |
+|------|------|
+| 単位根なし | 単位根あり |
+
+ADF 検定と KPSS 検定では帰無仮説と対立仮説が逆になることに注意されたい。  
+
+先程のランダムウォーク系列で KPSS 検定を行うと以下のようになる。  
+
+```python
+from statsmodels.tsa.stattools import kpss
+
+result = kpss(rwalk, nlags='auto')
+print_summary(result)
+```
+
+```text
+        Test Static: 	2.22
+        p-value: 	0.01
+        lag-used: 	10
+```
+
+`p-value` が十分小さいので、帰無仮説を棄却して、単位根ありと判定できる。  
+
+
+### トレンドと差分系列 {#トレンドと差分系列}
+
+一定ドリフト率のトレンドのあるデータも、単位根過程のひとつである。  
+従って、差分系列が定常過程となる。  
+
+単純な例として、ドリフト率 \\(\delta\\) のトレンドデータ  
+
+\\[ y\_t =  \delta t + \varepsilon\_t \\]  
+
+について、その差分系列 \\(\Delta y\_t = y\_t - y\_{t-1}\\) を計算すると、  
+
+\\[ \begin{align}\Delta y\_t &= y\_t - y\_{t-1} \\\\\\
+&= \delta t + \varepsilon\_t - \\{\delta(t-1) + \varepsilon\_{t-1}\\} \\\\\\
+&= \delta + \varepsilon\_t - \varepsilon\_{t-1} \end{align} \\]  
+
+ホワイトノイズ同士の差はやはりホワイトノイズになるので、これは定常過程である。  
+
+グラフでも見てみよう。  
+
+```python
+import numpy as np
+# トレンドデータ
+ar1 = sm.tsa.ArmaProcess(ar=[1, -0.7])
+sample_base = ar1.generate_sample(200)
+trend = np.cumsum(np.ones(200) * 0.2)
+sample_data = sample_base + trend
+
+fig, ax = plt.subplots(figsize=(15, 4.8), ncols=2)
+ax[0].plot(sample_data)
+ax[0].set_title('Trend Data')
+ax[1].plot(np.diff(sample_data))
+ax[1].set_title('Diff(Trend Data)')
+ax[1].set_ylim(-5, 5)
+plt.show()
+```
+
+{{< figure src="/learn-docs/ox-hugo/trend-diff.png" >}}  
+
+左の原系列のトレンドデータに対して、その 1 階差分系列が確かに定常過程になっていることがわかる。  
+
+
+## 季節階差 {#季節階差}
+
+時系列データは周期的な変動を含むことがある。  
+例えば、一月毎に何らかのデータをとったばあい、大抵の場合は年単位の周期成分を含んだデータになる。  
+そういうときは、原系列から周期成分を取り除いたほうが分析しやすい。  
+
+周期成分の影響を取り除く最も簡単な方法は、1周期前との差をとることである。  
+そのような差の取り方を **季節階差** という。  
+
+[RDatasets](https://vincentarelbundock.github.io/Rdatasets/) の `CO2` を使って、季節階差の例を見てみよう。  
+`CO2` は、1959 年から 1997 年までの大気中の CO2 濃度の推移を一ヶ月ごとに集計したものである。  
+
+```python
+# データのダウンロード
+co2_data = sm.datasets.get_rdataset('CO2', 'datasets').data
+# `time`列を時間型に変換
+yr = co2_data['time'].astype(int)  # 年
+mth = co2_data['time'].sub(yr).mul(12).add(1).astype(int)  # 月
+isotime = yr.astype(str) + '-' + mth.astype(str) + '-1'  # isoformat
+date_idx = pd.to_datetime(isotime)
+# 日付インデックスを作成して不要列を削除
+co2_data = co2_data.set_index(date_idx).drop('time', axis=1)
+# 1 ヶ月周期でリサンプル
+co2_data = co2_data.resample('MS').asfreq()
+
+# 季節階差をとる
+co2_seasonal_diff = co2_data.diff(12)
+
+fig, ax = plt.subplots(figsize=(18, 4.4), ncols=3)
+co2_data.plot(ax=ax[0])
+ax[0].set_title('CO2 Concentration (ppm)')
+co2_seasonal_diff.plot(ax=ax[1])
+ax[1].set_title('Seasonal diff of CO2 Concentration (ppm)')
+ax[1].set_ylim(-1, 4)
+# 更に差分系列もプロットする
+co2_seasonal_diff.diff().plot(ax=ax[2])
+ax[2].set_title('Diff(Seasonal diff of CO2 Concentration")')
+ax[2].set_ylim(-3, 3)
+plt.show()
+```
+
+{{< figure src="/learn-docs/ox-hugo/co2-concentration.png" >}}  
+
+季節階差をとると周期成分だけでなく、トレンド成分もある程度消すことができる。  
+
+12 時点周期の季節階差をとったあとの系列(グラフ真ん中)は微妙に上昇傾向をとっている。  
+そこで、さらにその差分系列(グラフ右端)をみると、トレンドが完全に消えて定常過程を得ることができる。  
+
+このことから、CO2 の濃度は年単位で周期的に変動しながらも、毎年加速度的に増えているということがわかる。  
+
+
+### Decomposition {#Decomposition}
+
+季節階差をとる以外にも、季節成分とトレンド成分を分離する方法がある。  
+そのような方法の一つとして、Seasonal decomposition と呼ばれる方法がある。  
+
+これは、 データをトレンドと周期成分とその他の成分の総和(または積)としてモデリングし、モデルを当てはめたあとで、それぞれの成分ごとに分解する方法である。  
+
+`statsmodels` なら `seasonal_decompose` という関数で実現できる。  
+
+```python
+decomposed = sm.tsa.seasonal_decompose(co2_data['value'])
+fig = decomposed.plot()
+fig.set_size_inches(6.4, 7)
+plt.show()
+```
+
+{{< figure src="/learn-docs/ox-hugo/co2-decomposition.png" >}}  
+
+
+## 対数系列 {#対数系列}
+
+**対数系列** とは、原系列の値の自然対数をとった系列のことである。  
+また、原系列から対数系列を得る操作のことを **対数変換** という。  
+
+データの変動の触れ幅が徐々に大きくなるときや、データの最大値と最小値の差が大きいときは、対数系列の方が分析しやすいことが多い。  
+
+実際に、 [Rdatasets](https://vincentarelbundock.github.io/Rdatasets) の `UKgas` を用いて、対数系列を見てみよう。  
+`UKgas` は、1960 年から 1986 年までのイギリスのガス消費量を四半期ごとに集計したものである。  
+
+```python
+import datetime as dt
+# データのダウンロード
+ukgas_data = sm.datasets.get_rdataset('UKgas', 'datasets').data
+# 日付型のインデックスを作成
+date_idx = pd.date_range(
+    start=dt.date(1960, 1, 1),
+    end=dt.date(1986, 10, 1),
+    freq='QS'
+)
+ukgas_data = ukgas_data.set_index(date_idx)['value']
+# 対数変換
+log_ukgas = np.log(ukgas_data)
+
+fig, ax = plt.subplots(ncols=2, figsize=(15, 4.8))
+ukgas_data.plot(ax=ax[0])
+ax[0].set_title('UK Gas Consumption')
+log_ukgas.plot(ax=ax[1])
+ax[1].set_title('Logarithm of UK Gas Consumption')
+plt.show()
+```
+
+{{< figure src="/learn-docs/ox-hugo/log_ukgas.png" >}}  
+
+左の原系列よりも、右の対数系列の方がデータの増減幅が抑えられていることがわかる。  
+
+時系列データをモデリングする際に、原系列をモデリングするよりも、対数系列をモデリングする方がモデルの当てはまりが良い場合が多い。確たる理由はなくとも、とりあえず対数変換をしてみることはひとつの Tips として覚えていてよい。  
+
+
+### 対数系列の差分系列 {#対数系列の差分系列}
+
+`UKgas` の対数系列を見ると、明らかに周期成分を含んでいることが分かる。そこで、この対数系列の季節階差をとる。  
+
+```python
+seasonal_diff_ukgas = log_ukgas.diff(4)
+seasonal_diff_ukgas.plot()
+plt.show()
+```
+
+{{< figure src="/learn-docs/ox-hugo/ukgas-seasonal-diff.png" >}}  
+
+1970 年から 1972 年にかけて、大きな変化がみられるが、それ以外の年はおおむね定常になっていることがわかる。  
+
+ところで、対数系列の季節階差系列は、原系列からみてどのように解釈するべきだろうか。  
+
+季節階差も差分系列の一種だと考えて、対数系列の差分系列のことを考えてみよう。原系列を \\(y\_t\\) とするとき、対数系列 \\(\log y\_t\\) の差分系列 \\(\Delta \log y\_t\\) は、  
+
+\\[ \begin{align} \Delta \log y\_t &= \log y\_t - \log y\_{t-1} \\\\\\
+&= \log \frac{y\_t}{y\_{t-1}} \\ \end{align} \\]  
+
+となる。  
+
+すなわち、原系列からみると、 \\(\Delta \log y\_t \\) は前時点との比をとっていることになる。  
+
+従って、 `UKgas` の対数系列の季節階差がほぼ定常になるということは、ガス消費量は前年同期に比べてほぼ等比数列的に増加しているということになる。

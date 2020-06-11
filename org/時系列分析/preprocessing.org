@@ -9,7 +9,7 @@
 そのため、日時や時刻を表す列があると分析の都合が良い。
 
 基本的には、以下の流れで取得データを周期一定の時系列データに直す。
-1. 日付を表す列データを日付型に直す
+1. 日付を表す列データを日付型にキャストする
 2. 直した列をインデックスにする
 3. 日付インデックスのサンプリング周期が一定になるように、データをリサンプルする
 
@@ -107,6 +107,7 @@ plt.show()
 例えば、ランダムウォークは定常過程ではないが、一時点前との差分をとった系列はホワイトノイズなので定常過程となる。
 
 #+begin_src jupyter-python :session py :kernel py-project :async yes :file .ob-jupyter/random-walk-diff.png :exports results
+import numpy as np
 from numpy.random import default_rng
 
 rg = default_rng()
@@ -204,7 +205,7 @@ KPSS 検定の帰無仮説と対立仮説は以下の通り。
 ADF 検定と KPSS 検定では帰無仮説と対立仮説が逆になることに注意されたい。
 
 先程のランダムウォーク系列で KPSS 検定を行うと以下のようになる。
-#+begin_src jupyter-python :session py :kernel py-project :async yes :display text
+#+begin_src jupyter-python :session py :kernel py-project :async yes :display text :exports both
 from statsmodels.tsa.stattools import kpss
 
 result = kpss(rwalk, nlags='auto')
