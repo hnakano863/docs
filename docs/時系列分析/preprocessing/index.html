@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="en" dir=>
+
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="本稿では、時系列データの分析を容易にするために、基礎的なデータ変換方法について述べる。
+時系列データへの変換 時系列データは、一定の時間間隔で取得されたデータのことだった。
+そのため、日時や時刻を表す列があると分析の都合が良い。
+基本的には、以下の流れで取得データを周期一定の時系列データに直す。
+ 日付を表す列データを日付型にキャストする 直した列をインデックスにする 日付インデックスのサンプリング周期が一定になるように、データをリサンプルする  例示用のデータとして、 RDatasets の LakeHuron を用いる。
+このデータは、アメリカの五大湖のひとつであるヒューロン湖の、 1875 年から 1972 年までの水位を記録したものである。
+import pandas as pd import statsmodels.api as sm # データのダウンロード lake_data = sm.datasets.get_rdataset(&#39;LakeHuron&#39;, &#39;datasets&#39;).data # 変換前のデータの頭 5 行を閲覧 print(&#34; Before Transformation &#34;.center(80, &#39;=&#39;)) print(lake_data.head()) # `time`列に年データが入っている time_idx = lake_data[&#39;time&#39;] # 1. 日付を表す列データを日付型に直す # `time`列は数値型なので、数値-&gt;整数-&gt;日付の順番でキャストする time_idx = pd.to_datetime(time_idx.astype(int), format=&#39;%Y&#39;) # 2. 直した列をインデックスにする # インデックスにセットし、不要な列をドロップ lake_data = lake_data.set_index(time_idx).drop(&#39;time&#39;, axis=1) # 3. 日付インデックスのサンプリング周期が一定になるように、データをリサンプルする lake_data = lake_data.">
+<meta name="theme-color" content="#FFFFFF"><meta property="og:title" content="時系列データの前処理" />
+<meta property="og:description" content="本稿では、時系列データの分析を容易にするために、基礎的なデータ変換方法について述べる。
+時系列データへの変換 時系列データは、一定の時間間隔で取得されたデータのことだった。
+そのため、日時や時刻を表す列があると分析の都合が良い。
+基本的には、以下の流れで取得データを周期一定の時系列データに直す。
+ 日付を表す列データを日付型にキャストする 直した列をインデックスにする 日付インデックスのサンプリング周期が一定になるように、データをリサンプルする  例示用のデータとして、 RDatasets の LakeHuron を用いる。
+このデータは、アメリカの五大湖のひとつであるヒューロン湖の、 1875 年から 1972 年までの水位を記録したものである。
+import pandas as pd import statsmodels.api as sm # データのダウンロード lake_data = sm.datasets.get_rdataset(&#39;LakeHuron&#39;, &#39;datasets&#39;).data # 変換前のデータの頭 5 行を閲覧 print(&#34; Before Transformation &#34;.center(80, &#39;=&#39;)) print(lake_data.head()) # `time`列に年データが入っている time_idx = lake_data[&#39;time&#39;] # 1. 日付を表す列データを日付型に直す # `time`列は数値型なので、数値-&gt;整数-&gt;日付の順番でキャストする time_idx = pd.to_datetime(time_idx.astype(int), format=&#39;%Y&#39;) # 2. 直した列をインデックスにする # インデックスにセットし、不要な列をドロップ lake_data = lake_data.set_index(time_idx).drop(&#39;time&#39;, axis=1) # 3. 日付インデックスのサンプリング周期が一定になるように、データをリサンプルする lake_data = lake_data." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="http://hanakno863.github.io/learn-docs/docs/%E6%99%82%E7%B3%BB%E5%88%97%E5%88%86%E6%9E%90/preprocessing/" />
+
+<title>時系列データの前処理 | Learn Docs</title>
+<link rel="manifest" href="/learn-docs/manifest.json">
+<link rel="icon" href="/learn-docs/favicon.png" type="image/x-icon">
+<link rel="stylesheet" href="/learn-docs/book.min.e161f1fe2b283b6a43c29a52fde96e2387fade573e78efa6701d44c8499da76b.css" integrity="sha256-4WHx/isoO2pDwppS/eluI4f63lc&#43;eO&#43;mcB1EyEmdp2s=">
+<script defer src="/learn-docs/en.search.min.925e38f9e5deb3a6396aa95a04de4cd37c3ccc0dca82e0a99c666266537207a1.js" integrity="sha256-kl44&#43;eXes6Y5aqlaBN5M03w8zA3KguCpnGZiZlNyB6E="></script>
+<!--
+Made with Book Theme
+https://github.com/alex-shpak/hugo-book
+-->
+
+  <script type="text/javascript" async
+  src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+  MathJax.Hub.Config({
+  tex2jax: {
+    inlineMath: [['$','$'], ['\\(','\\)']],
+    displayMath: [['$$','$$'], ['\\[', '\\]']],
+    processEscapes: true,
+    processEnvironments: true,
+    skipTags: ['script', 'noscript', 'style', 'textarea', 'pre'],
+    TeX: { equationNumbers: { autoNumber: "AMS" },
+           extensions: ["AMSmath.js", "AMSsymbols.js"],
+    }
+  }
+  });
+  MathJax.Hub.Queue(function() {
+    
+    
+    
+    var all = MathJax.Hub.getAllJax(), i;
+    for(i = 0; i < all.length; i += 1) {
+        all[i].SourceElement().parentNode.className += ' has-jax';
+    }
+  });
+
+  MathJax.Hub.Config({
+  
+      TeX: {
+          Macros: { bm: ["\\boldsymbol{#1}", 1] }
+      }
+  });
+</script>
+
+<link rel="stylesheet" href="http://hanakno863.github.io/learn-docscss/syntax.css" />
+
+</head>
+
+<body dir=>
+  <input type="checkbox" class="hidden" id="menu-control" />
+  <main class="container flex">
+    <aside class="book-menu">
+      
+  <nav>
+<h2 class="book-brand">
+  <a href="/learn-docs"><span>Learn Docs</span>
+  </a>
+</h2>
+
+
+<div class="book-search">
+  <input type="text" id="book-search-input" placeholder="Search" aria-label="Search" maxlength="64" data-hotkeys="s/" />
+  <div class="book-search-spinner hidden"></div>
+  <ul id="book-search-results"></ul>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+  <ul>
+<li><a href="/learn-docs/docs/survival_analysis/"> <strong>生存時間解析</strong> </a>
+
+<ul>
+<li><a href="/learn-docs/docs/survival_analysis/kaplan-meier/">カプランマイヤー法</a></li>
+<li><a href="/learn-docs/docs/survival_analysis/cumulative-hazard/">累積ハザード関数</a></li>
+</ul></li>
+<li><a href="/learn-docs/docs/%E6%99%82%E7%B3%BB%E5%88%97%E5%88%86%E6%9E%90/"> <strong>時系列分析</strong> </a>
+
+<ul>
+<li><a href="/learn-docs/docs/%E6%99%82%E7%B3%BB%E5%88%97%E5%88%86%E6%9E%90/preprocessing/"class=active>時系列データの前処理</a></li>
+<li><a href="/learn-docs/docs/%E6%99%82%E7%B3%BB%E5%88%97%E5%88%86%E6%9E%90/state-space-model/">状態空間モデル</a></li>
+<li><a href="/learn-docs/docs/%E6%99%82%E7%B3%BB%E5%88%97%E5%88%86%E6%9E%90/state-space-python/">状態空間モデルの実装例</a></li>
+</ul></li>
+</ul>
+
+
+
+
+
+
+  
+<ul>
+  
+  <li>
+    <a href="https://github.com/hnakano863/learn-docs" target="_blank" rel="noopener">
+        Github
+      </a>
+  </li>
+  
+</ul>
+
+
+
+
+
+
+</nav>
+
+
+
+
+  <script>(function(){var menu=document.querySelector("aside.book-menu nav");addEventListener("beforeunload",function(event){localStorage.setItem("menu.scrollTop",menu.scrollTop);});menu.scrollTop=localStorage.getItem("menu.scrollTop");})();</script>
+
+
+ 
+    </aside>
+
+    <div class="book-page">
+      <header class="book-header">
+        
+  <div class="flex align-center justify-between">
+  <label for="menu-control">
+    <img src="/learn-docs/svg/menu.svg" class="book-icon" alt="Menu" />
+  </label>
+
+  <strong>時系列データの前処理</strong>
+
+  <label for="toc-control">
+    
+    <img src="/learn-docs/svg/toc.svg" class="book-icon" alt="Table of Contents" />
+    
+  </label>
+</div>
+
+
+  
+    <input type="checkbox" class="hidden" id="toc-control" />
+    <aside class="hidden clearfix">
+      
+  <nav id="TableOfContents">
+<ul>
+<li>
+<ul>
+<li><a href="#時系列データへの変換">時系列データへの変換</a></li>
+<li><a href="#定常過程">定常過程</a></li>
+<li><a href="#差分系列">差分系列</a>
+<ul>
+<li><a href="#用語">用語</a></li>
+<li><a href="#単位根検定">単位根検定</a></li>
+<li><a href="#トレンドと差分系列">トレンドと差分系列</a></li>
+</ul></li>
+<li><a href="#季節階差">季節階差</a>
+<ul>
+<li><a href="#Decomposition">Decomposition</a></li>
+</ul></li>
+<li><a href="#対数系列">対数系列</a>
+<ul>
+<li><a href="#対数系列の差分系列">対数系列の差分系列</a></li>
+</ul></li>
+</ul></li>
+</ul>
+</nav>
+
+
+    </aside>
+  
+ 
+      </header>
+
+      
+      
+  <article class="markdown">
+
+<p>本稿では、時系列データの分析を容易にするために、基礎的なデータ変換方法について述べる。</p>
+
+<h2 id="時系列データへの変換">時系列データへの変換</h2>
+
+<p>時系列データは、一定の時間間隔で取得されたデータのことだった。<br />
+そのため、日時や時刻を表す列があると分析の都合が良い。</p>
+
+<p>基本的には、以下の流れで取得データを周期一定の時系列データに直す。</p>
+
+<ol>
+<li>日付を表す列データを日付型にキャストする</li>
+<li>直した列をインデックスにする</li>
+<li>日付インデックスのサンプリング周期が一定になるように、データをリサンプルする</li>
+</ol>
+
+<p>例示用のデータとして、 <a href="https://vincentarelbundock.github.io/Rdatasets/">RDatasets</a> の <code>LakeHuron</code> を用いる。<br />
+このデータは、アメリカの五大湖のひとつであるヒューロン湖の、 1875 年から 1972 年までの水位を記録したものである。</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="color:#f92672">import</span> pandas <span style="color:#f92672">as</span> pd
+<span style="color:#f92672">import</span> statsmodels.api <span style="color:#f92672">as</span> sm
+
+<span style="color:#75715e"># データのダウンロード</span>
+lake_data <span style="color:#f92672">=</span> sm<span style="color:#f92672">.</span>datasets<span style="color:#f92672">.</span>get_rdataset(<span style="color:#e6db74">&#39;LakeHuron&#39;</span>, <span style="color:#e6db74">&#39;datasets&#39;</span>)<span style="color:#f92672">.</span>data
+<span style="color:#75715e"># 変換前のデータの頭 5 行を閲覧</span>
+<span style="color:#66d9ef">print</span>(<span style="color:#e6db74">&#34; Before Transformation &#34;</span><span style="color:#f92672">.</span>center(<span style="color:#ae81ff">80</span>, <span style="color:#e6db74">&#39;=&#39;</span>))
+<span style="color:#66d9ef">print</span>(lake_data<span style="color:#f92672">.</span>head())
+<span style="color:#75715e"># `time`列に年データが入っている</span>
+time_idx <span style="color:#f92672">=</span> lake_data[<span style="color:#e6db74">&#39;time&#39;</span>]
+
+<span style="color:#75715e"># 1. 日付を表す列データを日付型に直す</span>
+<span style="color:#75715e"># `time`列は数値型なので、数値-&gt;整数-&gt;日付の順番でキャストする</span>
+time_idx <span style="color:#f92672">=</span> pd<span style="color:#f92672">.</span>to_datetime(time_idx<span style="color:#f92672">.</span>astype(int), format<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;%Y&#39;</span>)
+<span style="color:#75715e"># 2. 直した列をインデックスにする</span>
+<span style="color:#75715e"># インデックスにセットし、不要な列をドロップ</span>
+lake_data <span style="color:#f92672">=</span> lake_data<span style="color:#f92672">.</span>set_index(time_idx)<span style="color:#f92672">.</span>drop(<span style="color:#e6db74">&#39;time&#39;</span>, axis<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span>)
+<span style="color:#75715e"># 3. 日付インデックスのサンプリング周期が一定になるように、データをリサンプルする</span>
+lake_data <span style="color:#f92672">=</span> lake_data<span style="color:#f92672">.</span>resample(<span style="color:#e6db74">&#39;AS&#39;</span>)<span style="color:#f92672">.</span>asfreq()  <span style="color:#75715e"># 1 年ごとにリサンプル</span>
+<span style="color:#75715e"># 変換後</span>
+<span style="color:#66d9ef">print</span>(<span style="color:#e6db74">&#34; After Transformation &#34;</span><span style="color:#f92672">.</span>center(<span style="color:#ae81ff">80</span>, <span style="color:#e6db74">&#39;=&#39;</span>))
+<span style="color:#66d9ef">print</span>(lake_data<span style="color:#f92672">.</span>head())</code></pre></div><div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-text" data-lang="text">============================ Before Transformation =============================
+   time   value
+0  1875  580.38
+1  1876  581.86
+2  1877  580.97
+3  1878  580.80
+4  1879  579.79
+============================= After Transformation =============================
+             value
+time              
+1875-01-01  580.38
+1876-01-01  581.86
+1877-01-01  580.97
+1878-01-01  580.80
+1879-01-01  579.79</code></pre></div>
+<p>このように <code>DataFrame</code> のインデックスを日付型に直しておくと、分析しやすくなるだけでなく、データのプロットにも便利になる。</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="color:#f92672">import</span> matplotlib.pyplot <span style="color:#f92672">as</span> plt
+<span style="color:#f92672">import</span> seaborn <span style="color:#f92672">as</span> sns
+<span style="color:#75715e"># グラフのスタイルを変更</span>
+sns<span style="color:#f92672">.</span>set(style<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;darkgrid&#39;</span>)
+<span style="color:#75715e"># DataFrame.plot()が使える</span>
+lake_data<span style="color:#f92672">.</span>plot()
+plt<span style="color:#f92672">.</span>title(<span style="color:#e6db74">&#39;Annual Level of Lake Huron&#39;</span>)
+plt<span style="color:#f92672">.</span>show()</code></pre></div>
+<figure>
+    <img src="/learn-docs/ox-hugo/lake_huron.png"/> 
+</figure>
+
+
+<h2 id="定常過程">定常過程</h2>
+
+<p>時系列データの分析を行う際に、最も分析しやすいデータは定常過程のデータである。</p>
+
+<p><strong>定常過程</strong> とは、以下の条件を満たすデータである。</p>
+
+<ol>
+<li>期待値が時点によらず一定</li>
+<li>自己共分散が時点によらない(ラグによって変わるのは OK)</li>
+</ol>
+
+<p>自己共分散が時点によらないことから、定常過程では分散(=ラグ 0 のときの自己共分散)が時点によらず一定であることがわかる。</p>
+
+<p>たとえば、ホワイトノイズは定常過程である。一方、ランダムウォークやトレンドのあるデータは定常過程ではない。</p>
+
+<p>ちなみに、定常過程の 2 条件を数式で表現すると、以下のようになる</p>
+
+<ol>
+<li>\( \mathrm{E}[y_t] = \mu \)</li>
+<li>\( \mathrm{Cov}[y_t, y_{t-k}] = \gamma_k \)</li>
+</ol>
+
+<p>定常過程ならば、データ生成過程の期待値や自己共分散をサンプルから推定することができる。</p>
+
+<ol>
+<li>期待値の推定量 = 標本平均<br />
+\[ \hat{\mu} = \frac{1}{N}\sum_{t=1}^N y_t \]</li>
+<li>自己共分散の推定量<br />
+\[ \hat{\gamma}_k = \frac{1}{N}\sum_{t=1}^N (y_t-\hat{\mu})(y_{t-k}-\hat{\mu}) \]</li>
+<li>自己相関の推定量<br />
+\[ \hat{\rho}_k = \frac{\hat{\gamma}_k}{\hat{\gamma}_0} \]</li>
+</ol>
+
+<p>ただし、\(N\) はサンプル数とする。</p>
+
+<h2 id="差分系列">差分系列</h2>
+
+<p>たとえ定常過程でないデータだったとしても、データを変換することで定常過程にすることができる場合がある。例えば、ランダムウォークは定常過程ではないが、一時点前との差分をとった系列はホワイトノイズなので定常過程となる。</p>
+
+<figure>
+    <img src="/learn-docs/ox-hugo/random-walk-diff.png"/> 
+</figure>
+
+
+<h3 id="用語">用語</h3>
+
+<p>何の変換も施していない時系列データ(グラフ左)のことを <strong>原系列</strong> という。<br />
+原系列に対して、一時点前との差分をとった系列(グラフ右)のことを、 <strong>1 階差分系列</strong> という。<br />
+1 階差分系列のさらに差分をとった系列のことを 2 階差分系列という。</p>
+
+<p>原系列の \(n\) 階差分系列が定常過程だった場合、原系列は \(n\) 次 <strong>和分過程</strong> という。<br />
+例えば、ランダムウォークは 1 階差分系列が定常過程なので、1次和分過程である。<br />
+とくに 1 次和分過程のことを <strong>単位根過程</strong> ということもある。</p>
+
+<h3 id="単位根検定">単位根検定</h3>
+
+<p>時系列データが単位根をもつ(=和分過程である)かどうかを調べるための検定を単位根検定という。</p>
+
+<p>よく使われる検定は ADF(Augmented Dickey-Fuller)検定である。<br />
+帰無仮説と対立仮説は以下の通り。</p>
+
+<table>
+<thead>
+<tr>
+<th>帰無仮説</th>
+<th>対立仮説</th>
+</tr>
+</thead>
+
+<tbody>
+<tr>
+<td>単位根あり</td>
+<td>単位根なし</td>
+</tr>
+</tbody>
+</table>
+
+<p>例えば、ホワイトノイズ(=単位根なし)への検定結果は以下のとおり。</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="color:#f92672">from</span> statsmodels.tsa.stattools <span style="color:#f92672">import</span> adfuller
+
+rg <span style="color:#f92672">=</span> default_rng(<span style="color:#ae81ff">123</span>)
+<span style="color:#75715e"># ホワイトノイズ作成</span>
+wnoiz <span style="color:#f92672">=</span> rg<span style="color:#f92672">.</span>normal(<span style="color:#ae81ff">0</span>, <span style="color:#ae81ff">4</span>, size<span style="color:#f92672">=</span><span style="color:#ae81ff">300</span>)
+<span style="color:#75715e"># 検定</span>
+result <span style="color:#f92672">=</span> adfuller(wnoiz, regression<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;nc&#39;</span>, autolag<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;AIC&#39;</span>)
+
+<span style="color:#66d9ef">def</span> <span style="color:#a6e22e">print_summary</span>(result):
+    <span style="color:#66d9ef">print</span>(
+        <span style="color:#e6db74">&#34;&#34;&#34;
+</span><span style="color:#e6db74">        Test Static: </span><span style="color:#ae81ff">\t</span><span style="color:#e6db74">{0:.3}
+</span><span style="color:#e6db74">        p-value: </span><span style="color:#ae81ff">\t</span><span style="color:#e6db74">{1:.3}
+</span><span style="color:#e6db74">        lag-used: </span><span style="color:#ae81ff">\t</span><span style="color:#e6db74">{2}
+</span><span style="color:#e6db74">        &#34;&#34;&#34;</span><span style="color:#f92672">.</span>format(<span style="color:#f92672">*</span>result)
+    )
+
+print_summary(result)</code></pre></div><div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-text" data-lang="text">        Test Static: 	-16.7
+        p-value: 	2.48e-28
+        lag-used: 	0</code></pre></div>
+<p><code>p-value</code> が 0.05 より十分に低いので、帰無仮説を棄却して、単位根なしといえる。</p>
+
+<p>一方、ランダムウォーク系列で ADF 検定を行うと、</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python">rwalk <span style="color:#f92672">=</span> np<span style="color:#f92672">.</span>cumsum(wnoiz)
+result <span style="color:#f92672">=</span> adfuller(rwalk)
+print_summary(result)</code></pre></div><div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-text" data-lang="text">        Test Static: 	-2.05
+        p-value: 	0.264
+        lag-used: 	0</code></pre></div>
+<p><code>p-value</code> が 0.05 より大きいので、帰無仮説を棄却することができない。</p>
+
+<p>ADF 検定の他に、KPSS 検定という検定によっても単位根の有無を判定できる。</p>
+
+<p>KPSS 検定の帰無仮説と対立仮説は以下の通り。</p>
+
+<table>
+<thead>
+<tr>
+<th>帰無仮説</th>
+<th>対立仮説</th>
+</tr>
+</thead>
+
+<tbody>
+<tr>
+<td>単位根なし</td>
+<td>単位根あり</td>
+</tr>
+</tbody>
+</table>
+
+<p>ADF 検定と KPSS 検定では帰無仮説と対立仮説が逆になることに注意されたい。</p>
+
+<p>先程のランダムウォーク系列で KPSS 検定を行うと以下のようになる。</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="color:#f92672">from</span> statsmodels.tsa.stattools <span style="color:#f92672">import</span> kpss
+
+result <span style="color:#f92672">=</span> kpss(rwalk, nlags<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;auto&#39;</span>)
+print_summary(result)</code></pre></div><div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-text" data-lang="text">        Test Static: 	2.22
+        p-value: 	0.01
+        lag-used: 	10</code></pre></div>
+<p><code>p-value</code> が十分小さいので、帰無仮説を棄却して、単位根ありと判定できる。</p>
+
+<h3 id="トレンドと差分系列">トレンドと差分系列</h3>
+
+<p>一定ドリフト率のトレンドのあるデータも、単位根過程のひとつである。<br />
+従って、差分系列が定常過程となる。</p>
+
+<p>単純な例として、ドリフト率 \(\delta\) のトレンドデータ</p>
+
+<p>\[ y_t =  \delta t + \varepsilon_t \]</p>
+
+<p>について、その差分系列 \(\Delta y_t = y_t - y_{t-1}\) を計算すると、</p>
+
+<p>\[ \begin{align}\Delta y_t &amp;= y_t - y_{t-1} \\<br />
+&amp;= \delta t + \varepsilon_t - \{\delta(t-1) + \varepsilon_{t-1}\} \\<br />
+&amp;= \delta + \varepsilon_t - \varepsilon_{t-1} \end{align} \]</p>
+
+<p>ホワイトノイズ同士の差はやはりホワイトノイズになるので、これは定常過程である。</p>
+
+<p>グラフでも見てみよう。</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="color:#f92672">import</span> numpy <span style="color:#f92672">as</span> np
+<span style="color:#75715e"># トレンドデータ</span>
+ar1 <span style="color:#f92672">=</span> sm<span style="color:#f92672">.</span>tsa<span style="color:#f92672">.</span>ArmaProcess(ar<span style="color:#f92672">=</span>[<span style="color:#ae81ff">1</span>, <span style="color:#f92672">-</span><span style="color:#ae81ff">0.7</span>])
+sample_base <span style="color:#f92672">=</span> ar1<span style="color:#f92672">.</span>generate_sample(<span style="color:#ae81ff">200</span>)
+trend <span style="color:#f92672">=</span> np<span style="color:#f92672">.</span>cumsum(np<span style="color:#f92672">.</span>ones(<span style="color:#ae81ff">200</span>) <span style="color:#f92672">*</span> <span style="color:#ae81ff">0.2</span>)
+sample_data <span style="color:#f92672">=</span> sample_base <span style="color:#f92672">+</span> trend
+
+fig, ax <span style="color:#f92672">=</span> plt<span style="color:#f92672">.</span>subplots(figsize<span style="color:#f92672">=</span>(<span style="color:#ae81ff">15</span>, <span style="color:#ae81ff">4.8</span>), ncols<span style="color:#f92672">=</span><span style="color:#ae81ff">2</span>)
+ax[<span style="color:#ae81ff">0</span>]<span style="color:#f92672">.</span>plot(sample_data)
+ax[<span style="color:#ae81ff">0</span>]<span style="color:#f92672">.</span>set_title(<span style="color:#e6db74">&#39;Trend Data&#39;</span>)
+ax[<span style="color:#ae81ff">1</span>]<span style="color:#f92672">.</span>plot(np<span style="color:#f92672">.</span>diff(sample_data))
+ax[<span style="color:#ae81ff">1</span>]<span style="color:#f92672">.</span>set_title(<span style="color:#e6db74">&#39;Diff(Trend Data)&#39;</span>)
+ax[<span style="color:#ae81ff">1</span>]<span style="color:#f92672">.</span>set_ylim(<span style="color:#f92672">-</span><span style="color:#ae81ff">5</span>, <span style="color:#ae81ff">5</span>)
+plt<span style="color:#f92672">.</span>show()</code></pre></div>
+<figure>
+    <img src="/learn-docs/ox-hugo/trend-diff.png"/> 
+</figure>
+
+
+<p>左の原系列のトレンドデータに対して、その 1 階差分系列が確かに定常過程になっていることがわかる。</p>
+
+<h2 id="季節階差">季節階差</h2>
+
+<p>時系列データは周期的な変動を含むことがある。<br />
+例えば、一月毎に何らかのデータをとったばあい、大抵の場合は年単位の周期成分を含んだデータになる。<br />
+そういうときは、原系列から周期成分を取り除いたほうが分析しやすい。</p>
+
+<p>周期成分の影響を取り除く最も簡単な方法は、1周期前との差をとることである。<br />
+そのような差の取り方を <strong>季節階差</strong> という。</p>
+
+<p><a href="https://vincentarelbundock.github.io/Rdatasets/">RDatasets</a> の <code>CO2</code> を使って、季節階差の例を見てみよう。<br />
+<code>CO2</code> は、1959 年から 1997 年までの大気中の CO2 濃度の推移を一ヶ月ごとに集計したものである。</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="color:#75715e"># データのダウンロード</span>
+co2_data <span style="color:#f92672">=</span> sm<span style="color:#f92672">.</span>datasets<span style="color:#f92672">.</span>get_rdataset(<span style="color:#e6db74">&#39;CO2&#39;</span>, <span style="color:#e6db74">&#39;datasets&#39;</span>)<span style="color:#f92672">.</span>data
+<span style="color:#75715e"># `time`列を時間型に変換</span>
+yr <span style="color:#f92672">=</span> co2_data[<span style="color:#e6db74">&#39;time&#39;</span>]<span style="color:#f92672">.</span>astype(int)  <span style="color:#75715e"># 年</span>
+mth <span style="color:#f92672">=</span> co2_data[<span style="color:#e6db74">&#39;time&#39;</span>]<span style="color:#f92672">.</span>sub(yr)<span style="color:#f92672">.</span>mul(<span style="color:#ae81ff">12</span>)<span style="color:#f92672">.</span>add(<span style="color:#ae81ff">1</span>)<span style="color:#f92672">.</span>astype(int)  <span style="color:#75715e"># 月</span>
+isotime <span style="color:#f92672">=</span> yr<span style="color:#f92672">.</span>astype(str) <span style="color:#f92672">+</span> <span style="color:#e6db74">&#39;-&#39;</span> <span style="color:#f92672">+</span> mth<span style="color:#f92672">.</span>astype(str) <span style="color:#f92672">+</span> <span style="color:#e6db74">&#39;-1&#39;</span>  <span style="color:#75715e"># isoformat</span>
+date_idx <span style="color:#f92672">=</span> pd<span style="color:#f92672">.</span>to_datetime(isotime)
+<span style="color:#75715e"># 日付インデックスを作成して不要列を削除</span>
+co2_data <span style="color:#f92672">=</span> co2_data<span style="color:#f92672">.</span>set_index(date_idx)<span style="color:#f92672">.</span>drop(<span style="color:#e6db74">&#39;time&#39;</span>, axis<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span>)
+<span style="color:#75715e"># 1 ヶ月周期でリサンプル</span>
+co2_data <span style="color:#f92672">=</span> co2_data<span style="color:#f92672">.</span>resample(<span style="color:#e6db74">&#39;MS&#39;</span>)<span style="color:#f92672">.</span>asfreq()
+
+<span style="color:#75715e"># 季節階差をとる</span>
+co2_seasonal_diff <span style="color:#f92672">=</span> co2_data<span style="color:#f92672">.</span>diff(<span style="color:#ae81ff">12</span>)
+
+fig, ax <span style="color:#f92672">=</span> plt<span style="color:#f92672">.</span>subplots(figsize<span style="color:#f92672">=</span>(<span style="color:#ae81ff">18</span>, <span style="color:#ae81ff">4.4</span>), ncols<span style="color:#f92672">=</span><span style="color:#ae81ff">3</span>)
+co2_data<span style="color:#f92672">.</span>plot(ax<span style="color:#f92672">=</span>ax[<span style="color:#ae81ff">0</span>])
+ax[<span style="color:#ae81ff">0</span>]<span style="color:#f92672">.</span>set_title(<span style="color:#e6db74">&#39;CO2 Concentration (ppm)&#39;</span>)
+co2_seasonal_diff<span style="color:#f92672">.</span>plot(ax<span style="color:#f92672">=</span>ax[<span style="color:#ae81ff">1</span>])
+ax[<span style="color:#ae81ff">1</span>]<span style="color:#f92672">.</span>set_title(<span style="color:#e6db74">&#39;Seasonal diff of CO2 Concentration (ppm)&#39;</span>)
+ax[<span style="color:#ae81ff">1</span>]<span style="color:#f92672">.</span>set_ylim(<span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>, <span style="color:#ae81ff">4</span>)
+<span style="color:#75715e"># 更に差分系列もプロットする</span>
+co2_seasonal_diff<span style="color:#f92672">.</span>diff()<span style="color:#f92672">.</span>plot(ax<span style="color:#f92672">=</span>ax[<span style="color:#ae81ff">2</span>])
+ax[<span style="color:#ae81ff">2</span>]<span style="color:#f92672">.</span>set_title(<span style="color:#e6db74">&#39;Diff(Seasonal diff of CO2 Concentration&#34;)&#39;</span>)
+ax[<span style="color:#ae81ff">2</span>]<span style="color:#f92672">.</span>set_ylim(<span style="color:#f92672">-</span><span style="color:#ae81ff">3</span>, <span style="color:#ae81ff">3</span>)
+plt<span style="color:#f92672">.</span>show()</code></pre></div>
+<figure>
+    <img src="/learn-docs/ox-hugo/co2-concentration.png"/> 
+</figure>
+
+
+<p>季節階差をとると周期成分だけでなく、トレンド成分もある程度消すことができる。</p>
+
+<p>12 時点周期の季節階差をとったあとの系列(グラフ真ん中)は微妙に上昇傾向をとっている。<br />
+そこで、さらにその差分系列(グラフ右端)をみると、トレンドが完全に消えて定常過程を得ることができる。</p>
+
+<p>このことから、CO2 の濃度は年単位で周期的に変動しながらも、毎年加速度的に増えているということがわかる。</p>
+
+<h3 id="Decomposition">Decomposition</h3>
+
+<p>季節階差をとる以外にも、季節成分とトレンド成分を分離する方法がある。<br />
+そのような方法の一つとして、Seasonal decomposition と呼ばれる方法がある。</p>
+
+<p>これは、 データをトレンドと周期成分とその他の成分の総和(または積)としてモデリングし、モデルを当てはめたあとで、それぞれの成分ごとに分解する方法である。</p>
+
+<p><code>statsmodels</code> なら <code>seasonal_decompose</code> という関数で実現できる。</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python">decomposed <span style="color:#f92672">=</span> sm<span style="color:#f92672">.</span>tsa<span style="color:#f92672">.</span>seasonal_decompose(co2_data[<span style="color:#e6db74">&#39;value&#39;</span>])
+fig <span style="color:#f92672">=</span> decomposed<span style="color:#f92672">.</span>plot()
+fig<span style="color:#f92672">.</span>set_size_inches(<span style="color:#ae81ff">6.4</span>, <span style="color:#ae81ff">7</span>)
+plt<span style="color:#f92672">.</span>show()</code></pre></div>
+<figure>
+    <img src="/learn-docs/ox-hugo/co2-decomposition.png"/> 
+</figure>
+
+
+<h2 id="対数系列">対数系列</h2>
+
+<p><strong>対数系列</strong> とは、原系列の値の自然対数をとった系列のことである。<br />
+また、原系列から対数系列を得る操作のことを <strong>対数変換</strong> という。</p>
+
+<p>データの変動の触れ幅が徐々に大きくなるときや、データの最大値と最小値の差が大きいときは、対数系列の方が分析しやすいことが多い。</p>
+
+<p>実際に、 <a href="https://vincentarelbundock.github.io/Rdatasets">Rdatasets</a> の <code>UKgas</code> を用いて、対数系列を見てみよう。<br />
+<code>UKgas</code> は、1960 年から 1986 年までのイギリスのガス消費量を四半期ごとに集計したものである。</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="color:#f92672">import</span> datetime <span style="color:#f92672">as</span> dt
+<span style="color:#75715e"># データのダウンロード</span>
+ukgas_data <span style="color:#f92672">=</span> sm<span style="color:#f92672">.</span>datasets<span style="color:#f92672">.</span>get_rdataset(<span style="color:#e6db74">&#39;UKgas&#39;</span>, <span style="color:#e6db74">&#39;datasets&#39;</span>)<span style="color:#f92672">.</span>data
+<span style="color:#75715e"># 日付型のインデックスを作成</span>
+date_idx <span style="color:#f92672">=</span> pd<span style="color:#f92672">.</span>date_range(
+    start<span style="color:#f92672">=</span>dt<span style="color:#f92672">.</span>date(<span style="color:#ae81ff">1960</span>, <span style="color:#ae81ff">1</span>, <span style="color:#ae81ff">1</span>),
+    end<span style="color:#f92672">=</span>dt<span style="color:#f92672">.</span>date(<span style="color:#ae81ff">1986</span>, <span style="color:#ae81ff">10</span>, <span style="color:#ae81ff">1</span>),
+    freq<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;QS&#39;</span>
+)
+ukgas_data <span style="color:#f92672">=</span> ukgas_data<span style="color:#f92672">.</span>set_index(date_idx)[<span style="color:#e6db74">&#39;value&#39;</span>]
+<span style="color:#75715e"># 対数変換</span>
+log_ukgas <span style="color:#f92672">=</span> np<span style="color:#f92672">.</span>log(ukgas_data)
+
+fig, ax <span style="color:#f92672">=</span> plt<span style="color:#f92672">.</span>subplots(ncols<span style="color:#f92672">=</span><span style="color:#ae81ff">2</span>, figsize<span style="color:#f92672">=</span>(<span style="color:#ae81ff">15</span>, <span style="color:#ae81ff">4.8</span>))
+ukgas_data<span style="color:#f92672">.</span>plot(ax<span style="color:#f92672">=</span>ax[<span style="color:#ae81ff">0</span>])
+ax[<span style="color:#ae81ff">0</span>]<span style="color:#f92672">.</span>set_title(<span style="color:#e6db74">&#39;UK Gas Consumption&#39;</span>)
+log_ukgas<span style="color:#f92672">.</span>plot(ax<span style="color:#f92672">=</span>ax[<span style="color:#ae81ff">1</span>])
+ax[<span style="color:#ae81ff">1</span>]<span style="color:#f92672">.</span>set_title(<span style="color:#e6db74">&#39;Logarithm of UK Gas Consumption&#39;</span>)
+plt<span style="color:#f92672">.</span>show()</code></pre></div>
+<figure>
+    <img src="/learn-docs/ox-hugo/log_ukgas.png"/> 
+</figure>
+
+
+<p>左の原系列よりも、右の対数系列の方がデータの増減幅が抑えられていることがわかる。</p>
+
+<p>時系列データをモデリングする際に、原系列をモデリングするよりも、対数系列をモデリングする方がモデルの当てはまりが良い場合が多い。確たる理由はなくとも、とりあえず対数変換をしてみることはひとつの Tips として覚えていてよい。</p>
+
+<h3 id="対数系列の差分系列">対数系列の差分系列</h3>
+
+<p><code>UKgas</code> の対数系列を見ると、明らかに周期成分を含んでいることが分かる。そこで、この対数系列の季節階差をとる。</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python">seasonal_diff_ukgas <span style="color:#f92672">=</span> log_ukgas<span style="color:#f92672">.</span>diff(<span style="color:#ae81ff">4</span>)
+seasonal_diff_ukgas<span style="color:#f92672">.</span>plot()
+plt<span style="color:#f92672">.</span>show()</code></pre></div>
+<figure>
+    <img src="/learn-docs/ox-hugo/ukgas-seasonal-diff.png"/> 
+</figure>
+
+
+<p>1970 年から 1972 年にかけて、大きな変化がみられるが、それ以外の年はおおむね定常になっていることがわかる。</p>
+
+<p>ところで、対数系列の季節階差系列は、原系列からみてどのように解釈するべきだろうか。</p>
+
+<p>季節階差も差分系列の一種だと考えて、対数系列の差分系列のことを考えてみよう。原系列を \(y_t\) とするとき、対数系列 \(\log y_t\) の差分系列 \(\Delta \log y_t\) は、</p>
+
+<p>\[ \begin{align} \Delta \log y_t &amp;= \log y_t - \log y_{t-1} \\<br />
+&amp;= \log \frac{y_t}{y_{t-1}} \ \end{align} \]</p>
+
+<p>となる。</p>
+
+<p>すなわち、原系列からみると、 \(\Delta \log y_t \) は前時点との比をとっていることになる。</p>
+
+<p>従って、 <code>UKgas</code> の対数系列の季節階差がほぼ定常になるということは、ガス消費量は前年同期に比べてほぼ等比数列的に増加しているということになる。</p>
+</article>
+ 
+      
+
+      <footer class="book-footer">
+        
+  <div class="flex flex-wrap justify-between">
+
+
+
+
+
+</div>
+
+ 
+        
+      </footer>
+
+      
+  
+  <div class="book-comments">
+
+</div>
+  
+ 
+
+      <label for="menu-control" class="hidden book-menu-overlay"></label>
+    </div>
+
+    
+    <aside class="book-toc">
+      
+  <nav id="TableOfContents">
+<ul>
+<li>
+<ul>
+<li><a href="#時系列データへの変換">時系列データへの変換</a></li>
+<li><a href="#定常過程">定常過程</a></li>
+<li><a href="#差分系列">差分系列</a>
+<ul>
+<li><a href="#用語">用語</a></li>
+<li><a href="#単位根検定">単位根検定</a></li>
+<li><a href="#トレンドと差分系列">トレンドと差分系列</a></li>
+</ul></li>
+<li><a href="#季節階差">季節階差</a>
+<ul>
+<li><a href="#Decomposition">Decomposition</a></li>
+</ul></li>
+<li><a href="#対数系列">対数系列</a>
+<ul>
+<li><a href="#対数系列の差分系列">対数系列の差分系列</a></li>
+</ul></li>
+</ul></li>
+</ul>
+</nav>
+
+ 
+    </aside>
+    
+  </main>
+
+  
+</body>
+
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
